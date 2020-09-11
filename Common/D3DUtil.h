@@ -14,6 +14,7 @@
 #include <DirectXColors.h>
 #include <DirectXCollision.h>
 #include <unordered_map>
+#include <memory>
 
 class D3DUtil {
 public:
