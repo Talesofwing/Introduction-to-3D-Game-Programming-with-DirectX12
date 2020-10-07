@@ -53,7 +53,7 @@ public:
 // 定義MeshGeometry中存儲的單個幾何體
 // 此結構體商用於將多個幾何體數據存於一個頂點緩沖區和一個索引緩沖區的情況
 // 它提供了對存於頂點緩沖區和索引緩沖區中的單個幾何體進行繪制所需的數據和偏移量
-struct SubMeshGeometry {
+struct SubmeshGeometry {
 	UINT IndexCount = 0;
 	UINT StartIndexLocation = 0;
 	INT BaseVertexLocation = 0;
@@ -85,7 +85,7 @@ struct MeshGeometry {
 
 	// 一個MeshGeometry結構體能夠存儲一組頂點/索引緩沖區中的多個幾何體
 	// 若利用下列器來定子網格幾何體, 我們就能單獨地繪制出其中的子網格 (單個幾何體)
-	std::unordered_map<std::string, SubMeshGeometry> DrawArgs;
+	std::unordered_map<std::string, SubmeshGeometry> DrawArgs;
 
 	D3D12_VERTEX_BUFFER_VIEW VertexBufferView () const {
 		D3D12_VERTEX_BUFFER_VIEW vbv;
