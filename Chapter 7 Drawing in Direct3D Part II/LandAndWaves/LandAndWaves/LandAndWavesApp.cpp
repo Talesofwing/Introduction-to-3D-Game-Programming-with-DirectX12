@@ -362,19 +362,19 @@ void LandAndWavesApp::BuildPSOs () {
 	opaquePsoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC (D3D12_DEFAULT);
 	opaquePsoDesc.SampleMask = UINT_MAX;
 	opaquePsoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-opaquePsoDesc.NumRenderTargets = 1;
-opaquePsoDesc.RTVFormats[0] = m_BackBufferFormat;
-opaquePsoDesc.SampleDesc.Count = m_4xMsaaState ? 4 : 1;
-opaquePsoDesc.SampleDesc.Quality = m_4xMsaaState ? (m_4xMsaaQuality - 1) : 0;
-opaquePsoDesc.DSVFormat = m_DepthStencilFormat;
-ThrowIfFailed (m_Device->CreateGraphicsPipelineState (&opaquePsoDesc, IID_PPV_ARGS (&m_PSOs["opaque"])));
+	opaquePsoDesc.NumRenderTargets = 1;
+	opaquePsoDesc.RTVFormats[0] = m_BackBufferFormat;
+	opaquePsoDesc.SampleDesc.Count = m_4xMsaaState ? 4 : 1;
+	opaquePsoDesc.SampleDesc.Quality = m_4xMsaaState ? (m_4xMsaaQuality - 1) : 0;
+	opaquePsoDesc.DSVFormat = m_DepthStencilFormat;
+	ThrowIfFailed (m_Device->CreateGraphicsPipelineState (&opaquePsoDesc, IID_PPV_ARGS (&m_PSOs["opaque"])));
 
-//
-// PSO for opaque wireframe objects.
-//
-D3D12_GRAPHICS_PIPELINE_STATE_DESC opaqueWireframePsoDesc = opaquePsoDesc;
-opaqueWireframePsoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
-ThrowIfFailed (m_Device->CreateGraphicsPipelineState (&opaqueWireframePsoDesc, IID_PPV_ARGS (&m_PSOs["opaque_wireframe"])));
+	//
+	// PSO for opaque wireframe objects.
+	//
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC opaqueWireframePsoDesc = opaquePsoDesc;
+	opaqueWireframePsoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
+	ThrowIfFailed (m_Device->CreateGraphicsPipelineState (&opaqueWireframePsoDesc, IID_PPV_ARGS (&m_PSOs["opaque_wireframe"])));
 }
 
 void LandAndWavesApp::OnKeyboardInput (const GameTimer& gt) {
