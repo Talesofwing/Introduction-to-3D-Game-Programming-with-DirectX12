@@ -13,16 +13,13 @@
 #pragma comment (lib, "dxgi.lib")
 
 class D3DApp {
-
 protected:
-
 	D3DApp (HINSTANCE hInstance);
 	D3DApp (const D3DApp& rhs) = delete;
 	D3DApp& operator = (const D3DApp& rhs) = delete;
 	virtual ~D3DApp ();
 
 public:
-
 	static D3DApp* GetApp ();
 
 	HINSTANCE AppInstance () const;
@@ -48,7 +45,6 @@ protected:
 	virtual void OnMouseMove (WPARAM btnState, int x, int y) {}
 
 protected:
-
 	bool InitMainWindow ();
 	bool InitDirect3D ();
 	void CreateCommandObjects ();
@@ -67,7 +63,6 @@ protected:
 	void LogOutputDisplayModes (IDXGIOutput* output, DXGI_FORMAT format);
 
 protected:
-
 	static D3DApp* m_Instance;
 
 	HINSTANCE m_AppInstance = nullptr;	// application instance handle

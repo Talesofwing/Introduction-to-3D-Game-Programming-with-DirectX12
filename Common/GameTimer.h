@@ -1,9 +1,7 @@
 #pragma once
 
 class GameTimer {
-
 public:
-	
 	GameTimer ();
 
 	float TotalTime() const;		// in seconds
@@ -15,7 +13,6 @@ public:
 	void Tick ();		// Call every frame.
 
 private:
-
 	double m_SecondsPerCount;
 	double m_DeltaTime;
 
@@ -26,6 +23,5 @@ private:
 	__int64 m_CurrTime;
 
 	bool m_Stopped;
-
 };
 
