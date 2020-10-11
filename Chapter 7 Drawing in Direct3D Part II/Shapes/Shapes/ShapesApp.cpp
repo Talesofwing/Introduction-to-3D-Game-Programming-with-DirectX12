@@ -151,6 +151,10 @@ bool ShapesApp::Initialize () {
 	// Wait until initialization is complete.
 	FlushCommandQueue ();
 
+	for (auto& geo : m_Geometries) {
+		geo.second->DisposeUploaders ();
+	}
+
 	return true;
 }
 
