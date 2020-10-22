@@ -28,6 +28,18 @@ public:
 		return x < low ? low : (x > high ? high : x);
 	}
 
+	// Returns the polar angle of the point (x, y) in [0, 2 * pi];
+	float AngleFromXY (float x, float y);
+
+	static DirectX::XMVECTOR SphericalToCartesian (float radius, float theta, float phi) {
+		return DirectX::XMVectorSet (
+			radius * sinf (phi) * cosf (theta),
+			radius * cosf (phi),
+			radius * sinf (phi) * sinf (theta),
+			1.0f
+		);
+	}
+
 	static XMMATRIX InverseTranspose (CXMMATRIX M) {
 		XMMATRIX A = M;
 		A.r[3] = XMVectorSet (0.0f, 0.0f, 0.0f, 1.0f);

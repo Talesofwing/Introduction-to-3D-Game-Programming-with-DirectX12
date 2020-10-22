@@ -133,6 +133,9 @@ struct Material {
 	// 漫反射紋理在SRV堆中的索引
 	int DiffuseSrvHeapIndex = -1;
 
+	// 法線紋理在SRV堆中的索引
+	int NormalSrvHeapIndex = -1;
+
 	int NumFrameDirty = g_NumFrameResources;
 
 	// 用於著色的材質常量綬緩沖區數據
