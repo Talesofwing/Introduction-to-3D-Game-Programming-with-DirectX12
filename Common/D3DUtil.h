@@ -10,11 +10,16 @@
 #include <string>
 #include <vector>
 #include <array>
-#include "d3dx12.h"
 #include <DirectXColors.h>
 #include <DirectXCollision.h>
 #include <unordered_map>
 #include <memory>
+#include <fstream>
+
+#include "d3dx12.h"
+#include "MathHelper.h"
+
+extern const int g_NumFrameResources;
 
 class D3DUtil {
 public:
@@ -107,6 +112,34 @@ struct MeshGeometry {
 		IndexBufferUploader = nullptr;
 	}
 
+};
+
+struct MaterialConstants {
+	DirectX::XMFLOAT4 DiffuseAlbedo = {1.0f, 1.0f, 1.0f, 1.0f};
+	DirectX::XMFLOAT3 FresnelR0 = {0.01f, 0.01f, 0.01f};
+	float Roughness = 0.25f;
+
+	// Used in texture mapping.
+	DirectX::XMFLOAT4X4 MatTransform = MathHelper::Identity4x4 ();
+};
+
+struct Material {
+	// 便於查找材質的唯一對應名稱
+	std::string Name;
+
+	// 材質的常量綬沖區索引
+	int MatCBIndex = -1;
+
+	// 漫反射紋理在SRV堆中的索引
+	int DiffuseSrvHeapIndex = -1;
+
+	int NumFrameDirty = g_NumFrameResources;
+
+	// 用於著色的材質常量綬緩沖區數據
+	DirectX::XMFLOAT4 DiffuseAlbedo = {1.0f, 1.0f, 1.0f, 1.0f};		// 漫反射反照率
+	DirectX::XMFLOAT3 FresnelR0 = {0.01f, 0.01f, 0.01f};			// 材質屬性 (折射率)
+	float Roughness = 0.25f;										// 粗糙度 [0, 1] 0為理想光滑表面
+	DirectX::XMFLOAT4X4 MatTransform = MathHelper::Identity4x4 ();  // 
 };
 
 struct Light {
