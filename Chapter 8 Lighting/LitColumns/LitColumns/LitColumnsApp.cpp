@@ -608,13 +608,52 @@ void LitColumnsApp::UpdateMainPassCB (const GameTimer& gt) {
 	m_MainPassCB.FarZ = 1000.0f;
 	m_MainPassCB.TotalTime = gt.TotalTime ();
 	m_MainPassCB.DeltaTime = gt.DeltaTime ();
+	
 	m_MainPassCB.AmbientLight = {0.25f, 0.25f, 0.35f, 1.0f};
-	m_MainPassCB.Lights[0].Direction = {0.57735f, -0.57735f, 0.57735f};
-	m_MainPassCB.Lights[0].Strength = {0.6f, 0.6f, 0.6f};
-	m_MainPassCB.Lights[1].Direction = {-0.57735f, -0.57735f, 0.57735f};
-	m_MainPassCB.Lights[1].Strength = {0.3f, 0.3f, 0.3f};
-	m_MainPassCB.Lights[2].Direction = {0.0f, -0.707f, -0.707f};
-	m_MainPassCB.Lights[2].Strength = {0.15f, 0.15f, 0.15f};
+
+	//m_MainPassCB.Lights[0].Direction = {0.57735f, -0.57735f, 0.57735f};
+	//m_MainPassCB.Lights[0].Strength = {0.6f, 0.6f, 0.6f};
+	//m_MainPassCB.Lights[1].Direction = {-0.57735f, -0.57735f, 0.57735f};
+	//m_MainPassCB.Lights[1].Strength = {0.3f, 0.3f, 0.3f};
+	//m_MainPassCB.Lights[2].Direction = {0.0f, -0.707f, -0.707f};
+	//m_MainPassCB.Lights[2].Strength = {0.15f, 0.15f, 0.15f};
+
+	// Exercise 4
+	//for (int i = 0; i < 5; i++) {
+	//	m_MainPassCB.Lights[i].Strength = {0.6f, 0.6f, 0.6f};
+	//	m_MainPassCB.Lights[i].Position = {-5.0f, 3.5f, -10.0f + i * 5.0f};
+	//	m_MainPassCB.Lights[i].FalloffStart = 0;
+	//	m_MainPassCB.Lights[i].FalloffEnd = (i + 1) * 2;
+
+	//	m_MainPassCB.Lights[i + 5].Strength = {0.6f, 0.6f, 0.6f};
+	//	m_MainPassCB.Lights[i + 5].Position = {5.0f, 3.5f, -10.0f + i * 5.0f};
+	//	m_MainPassCB.Lights[i + 5].FalloffStart = 0;
+	//	m_MainPassCB.Lights[i + 5].FalloffEnd = (i + 1) * 2;
+	//}
+
+	// Exercise 5 
+	for (int i = 0; i < 5; i++) {
+		m_MainPassCB.Lights[i].Strength = {0.6f, 0.6f, 0.6f};
+		m_MainPassCB.Lights[i].Position = {-5.0f, 3.5f, -10.0f + i * 5.0f};
+		m_MainPassCB.Lights[i].FalloffStart = 0;
+		m_MainPassCB.Lights[i].FalloffEnd = 10;
+		m_MainPassCB.Lights[i].SpotPower = 1;
+		m_MainPassCB.Lights[i].Direction = {0.0f, -1.0f, 0.0f};
+
+		m_MainPassCB.Lights[i + 5].Strength = {0.6f, 0.6f, 0.6f};
+		m_MainPassCB.Lights[i + 5].Position = {5.0f, 3.5f, -10.0f + i * 5.0f};
+		m_MainPassCB.Lights[i + 5].FalloffStart = 0;
+		m_MainPassCB.Lights[i + 5].FalloffEnd = 10;
+		m_MainPassCB.Lights[i + 5].SpotPower = 1;
+		m_MainPassCB.Lights[i + 5].Direction = {0.0f, -1.0f, 0.0f};
+	}
+
+	m_MainPassCB.Lights[10].Strength = {0.6f, 0.6f, 0.6f};
+	m_MainPassCB.Lights[10].Position = {0.0f, 10.0f, 0.0f};
+	m_MainPassCB.Lights[10].FalloffStart = 0;
+	m_MainPassCB.Lights[10].FalloffEnd = 50;
+	m_MainPassCB.Lights[10].SpotPower = 1;
+	m_MainPassCB.Lights[10].Direction = {0.0f, -1.0f, 0.0f};
 
 	auto currPassCB = m_CurrFrameResource->PassCB.get ();
 	currPassCB->CopyData (0, m_MainPassCB);

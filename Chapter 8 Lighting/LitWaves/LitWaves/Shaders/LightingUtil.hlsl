@@ -39,7 +39,23 @@ float3 BlinnPhong (float3 lightStrength, float3 lightVec, float3 normal, float3 
     const float m = mat.Shininess * 256.0f;
     float3 halfVec = normalize (toEye + lightVec);
 
-    float roughnessFactor = (m + 8.0f) * pow (max (dot (halfVec, normal), 0.0f), m) / 8.0f;
+    // Exercise 6
+    float ndotl = dot (lightVec, normal);
+    float ks = 0;
+    if (ndotl > 0) {
+        ks = pow (max (dot (normal, halfVec), 0.0f), m);
+    }
+
+    if (ks <= 0.1) {
+        ks = 0.0;
+    } else if (ks <= 0.8) {
+        ks = 0.5;
+    } else if (ks <= 1.0) {
+        ks = 0.8;
+    }
+    float roughnessFactor = (m + 8.0f) * ks / 8.0f;
+
+    //float roughnessFactor = (m + 8.0f) * pow (max (dot (halfVec, normal), 0.0f), m) / 8.0f;
 
     // 利用石里克近似法,求出反射光的因子 (即反射光顏色[0~1])
     float3 fresnelFactor = SchlickFresnel (mat.FresnelR0, halfVec, lightVec);
@@ -80,6 +96,16 @@ float3 ComputePointLight (Light L, Material mat, float3 pos, float3 normal, floa
 
     // 通過朗伯余弦定律按比例降低光強
     float ndotl = max (dot (lightVec, normal), 0.0f);
+    
+    // Exercise 6
+    if (ndotl <= 0.0) {
+        ndotl = 0.4;
+    } else if (ndotl <= 0.5) {
+        ndotl = 0.6;
+    } else {
+        ndotl = 1.0;
+    }
+
     float3 lightStrength = L.Strength * ndotl;
 
     // 根據距離計算光的衰減

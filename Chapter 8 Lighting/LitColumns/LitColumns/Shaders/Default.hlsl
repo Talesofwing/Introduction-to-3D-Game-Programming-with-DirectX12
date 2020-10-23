@@ -1,5 +1,5 @@
 #ifndef NUM_DIR_LIGHTS
-#define NUM_DIR_LIGHTS 3
+#define NUM_DIR_LIGHTS 0
 #endif
 
 #ifndef NUM_POINT_LIGHTS
@@ -7,7 +7,7 @@
 #endif
 
 #ifndef NUM_SPOT_LIGHTS
-#define NUM_SPOT_LIGHTS 0
+#define NUM_SPOT_LIGHTS 11
 #endif
 
 #include "LightingUtil.hlsl"

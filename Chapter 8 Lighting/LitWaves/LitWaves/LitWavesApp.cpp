@@ -499,6 +499,12 @@ void LitWavesApp::UpdateMainPassCB (const GameTimer& gt) {
 	XMStoreFloat3 (&m_MainPassCB.Lights[0].Direction, lightDir);
 	m_MainPassCB.Lights[0].Strength = {1.0f, 1.0f, 0.9f};
 
+	// Exercise 1
+	//float time = gt.TotalTime ();
+	//static float s = 0.0f;
+	//s = abs (sinf (time * 0.5f));	// ƒÉ±¶µÄÖÜÆÚ
+	//m_MainPassCB.Lights[0].Strength = {1.0f * s, 0.0f * s, 0.1f * s};
+
 	auto currPassCB = m_CurrFrameResource->PassCB.get ();
 	currPassCB->CopyData (0, m_MainPassCB);
 }
