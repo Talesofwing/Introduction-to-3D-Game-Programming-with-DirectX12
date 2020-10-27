@@ -209,7 +209,7 @@ void CrateApp::BuildRootSignature () {
 
 	auto staticSamplers = GetStaticSamplers ();
 
-	CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc (4, slotRootParameter,
+	CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc (_countof (slotRootParameter), slotRootParameter,
 											 (UINT)staticSamplers.size (), staticSamplers.data (),
 											 D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 

@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\Common\D3DUtil.h">
-      <Filter>來源檔案</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Common\D3DApp.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
@@ -40,6 +37,9 @@
       <Filter>標頭檔</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Common\DDSTextureLoader.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Common\D3DUtil.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
   </ItemGroup>
