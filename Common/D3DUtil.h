@@ -156,6 +156,16 @@ struct Light {
 
 #define MaxLights 16
 
+struct Texture {
+	// 便於查找材質所用的唯一名稱
+	std::string Name;
+
+	std::wstring Filename;
+
+	Microsoft::WRL::ComPtr<ID3D12Resource> Resource = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12Resource> UploadHeap = nullptr;
+};
+
 inline std::wstring AnsiToWString (const std::string& str) {
 	WCHAR buffer[512];
 	MultiByteToWideChar (CP_ACP, 0, str.c_str (), -1, buffer, 512);
