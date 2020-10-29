@@ -13,12 +13,6 @@
 #include "LightingUtil.hlsl"
 
 Texture2D    gDiffuseMap : register(t0);
-
-//
-// Exerices 3
-//
-Texture2D    gAlphaMap : register(t1);
-
 SamplerState gsamLinear  : register(s0);
 
 cbuffer cbPerObject : register(b0) {
@@ -69,7 +63,6 @@ struct VertexOut {
     float3 PosW    : POSITION;
     float3 NormalW : NORMAL;
     float2 TexC : TEXCOORD;
-    float2 OTexC : TEXCOORD1;
 };
 
 VertexOut VS (VertexIn vin) {
@@ -92,16 +85,7 @@ VertexOut VS (VertexIn vin) {
 }
 
 float4 PS (VertexOut pin) : SV_Target {
-    //float4 diffuseAlbedo = gDiffuseMap.Sample (gsamLinear, pin.TexC) * gDiffuseAlbedo;
-
-    //
-    // Exercise 3 & 4
-    //
-    float2 uv = pin.TexC.xy - float2 (0.5f, 0.5f);
-    uv = float2(uv.x * cos (gTotalTime) + uv.y * sin (gTotalTime),
-                uv.x * sin (gTotalTime) - uv.y * cos (gTotalTime));
-    uv += float2 (0.5, 0.5);
-    float4 diffuseAlbedo = gDiffuseMap.Sample (gsamLinear, uv) * gDiffuseAlbedo * gAlphaMap.Sample (gsamLinear, pin.TexC);
+    float4 diffuseAlbedo = gDiffuseMap.Sample (gsamLinear, pin.TexC) * gDiffuseAlbedo;
 
     // 對法線插值可能導致其非規範化,因此需要再次對他進行規範化處理
     pin.NormalW = normalize (pin.NormalW);
