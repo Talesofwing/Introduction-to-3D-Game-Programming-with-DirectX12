@@ -13,7 +13,13 @@
 #include "LightingUtil.hlsl"
 
 Texture2D    gDiffuseMap : register(t0);
-SamplerState gsamLinear  : register(s0);
+
+SamplerState gsamPointWrap        : register(s0);
+SamplerState gsamPointClamp       : register(s1);
+SamplerState gsamLinearWrap       : register(s2);
+SamplerState gsamLinearClamp      : register(s3);
+SamplerState gsamAnisotropicWrap  : register(s4);
+SamplerState gsamAnisotropicClamp : register(s5);
 
 cbuffer cbPerObject : register(b0) {
     float4x4 gWorld;
@@ -45,10 +51,10 @@ cbuffer cbPass : register(b1) {
 
     float4 gAmbientLight;
 
-    // Œ¦ì¶Ã¿‚€ÒÔMaxLightsé¹âÔ´”µÁ¿×î´óÖµµÄŒ¦ÏóíÕf
-    // Ë÷Òı[0, NUM_DIR_LIGHTS)±íÊ¾µÄÊÇ·½Ïò¹âÔ´
-    // Ë÷Òı[NUM_DIR_LIGHTS, NUM_DIR_LIGHTS+NUM_POINT_LIGHTS)±íÊ¾µÄÊÇüc¹âÔ´
-    // Ë÷Òı[NUM_DIR_LIGHTS + NUM_POINT_LIGHTS, NUM_DIR_LIGHTS + NUM_POINT_LIGHTS + NUM_SPOT_LIGHTS)„t±íÊ¾µÄÊÇ¾Û¹âµÆ¹âÔ´
+    // å°æ–¼æ¯å€‹ä»¥MaxLightsç‚ºå…‰æºæ•¸é‡æœ€å¤§å€¼çš„å°è±¡ä¾†èªª
+    // ç´¢å¼•[0, NUM_DIR_LIGHTS)è¡¨ç¤ºçš„æ˜¯æ–¹å‘å…‰æº
+    // ç´¢å¼•[NUM_DIR_LIGHTS, NUM_DIR_LIGHTS+NUM_POINT_LIGHTS)è¡¨ç¤ºçš„æ˜¯é»å…‰æº
+    // ç´¢å¼•[NUM_DIR_LIGHTS + NUM_POINT_LIGHTS, NUM_DIR_LIGHTS + NUM_POINT_LIGHTS + NUM_SPOT_LIGHTS)å‰‡è¡¨ç¤ºçš„æ˜¯èšå…‰ç¯å…‰æº
     Light gLights[MaxLights];
 };
 
@@ -68,14 +74,14 @@ struct VertexOut {
 VertexOut VS (VertexIn vin) {
     VertexOut vout = (VertexOut)0.0f;
 
-    // Œ¢í”üc×ƒ“Qµ½ÊÀ½ç¿Õég
+    // å°‡é ‚é»è®Šæ›åˆ°ä¸–ç•Œç©ºé–“
     float4 posW = mul (float4(vin.PosL, 1.0f), gWorld);
     vout.PosW = posW.xyz;
 
-    // ¼ÙÔOß@ÑYßMĞĞµÄÊÇµÈ±È¿s·Å,·ñ„tß@ÑYĞèÒªÊ¹ÓÃÊÀ½ç¾Øê‡µÄÄæŞDÖÃ¾Øê‡
+    // å‡è¨­é€™è£é€²è¡Œçš„æ˜¯ç­‰æ¯”ç¸®æ”¾,å¦å‰‡é€™è£éœ€è¦ä½¿ç”¨ä¸–ç•ŒçŸ©é™£çš„é€†è½‰ç½®çŸ©é™£
     vout.NormalW = mul (vin.NormalL, (float3x3)gWorld);
 
-    // Œ¢í”üc×ƒ“Qµ½ıR´Î½Ø¼ô¿Õég
+    // å°‡é ‚é»è®Šæ›åˆ°é½Šæ¬¡æˆªå‰ªç©ºé–“
     vout.PosH = mul (posW, gViewProj);
 
     float4 texC = mul (float4 (vin.TexC, 0.0f, 1.0f), gTexTransform);
@@ -85,18 +91,20 @@ VertexOut VS (VertexIn vin) {
 }
 
 float4 PS (VertexOut pin) : SV_Target {
-    float4 diffuseAlbedo = gDiffuseMap.Sample (gsamLinear, pin.TexC) * gDiffuseAlbedo;
+    float4 diffuseAlbedo = gDiffuseMap.Sample (gsamAnisotropicWrap, pin.TexC) * gDiffuseAlbedo;
 
-    // Œ¦·¨¾€²åÖµ¿ÉÄÜŒ§ÖÂÆä·ÇÒ¹ »¯,Òò´ËĞèÒªÔÙ´ÎŒ¦ËûßMĞĞÒ¹ »¯ÌÀí
+    // å°æ³•ç·šæ’å€¼å¯èƒ½å°è‡´å…¶éè¦ç¯„åŒ–,å› æ­¤éœ€è¦å†æ¬¡å°ä»–é€²è¡Œè¦ç¯„åŒ–è™•ç†
     pin.NormalW = normalize (pin.NormalW);
 
-    // ¹â¾€½›±íÃæÉÏÒ»üc·´Éäµ½Ó^²ìücß@Ò»·½ÏòÉÏµÄÏòÁ¿
-    float3 toEyeW = normalize (gEyePosW - pin.PosW);
+    // å…‰ç·šç¶“è¡¨é¢ä¸Šä¸€é»åå°„åˆ°è§€å¯Ÿé»é€™ä¸€æ–¹å‘ä¸Šçš„å‘é‡
+    float3 toEyeW = gEyePosW - pin.PosW;
+    float distToEye = length (toEyeW);
+    toEyeW /= distToEye;
 
-    // ég½Ó¹âÕÕ
+    // é–“æ¥å…‰ç…§
     float4 ambient = gAmbientLight * diffuseAlbedo;
 
-    // Ö±½Ó¹âÕÕ
+    // ç›´æ¥å…‰ç…§
     const float shininess = 1.0f - gRoughness;
     Material mat = {diffuseAlbedo, gFresnelR0, shininess};
     float3 shadowFactor = 1.0f;
@@ -105,7 +113,7 @@ float4 PS (VertexOut pin) : SV_Target {
 
     float4 litColor = ambient + directLight;
 
-    // ÄÂş·´Éä²ÄÙ|ÖĞ«@È¡alphaÖµµÄ³£ÒŠÊÖ¶Î
+    // å¾æ¼«åå°„æè³ªä¸­ç²å–alphaå€¼çš„å¸¸è¦‹æ‰‹æ®µ
     litColor.a = diffuseAlbedo.a;
 
     return litColor;

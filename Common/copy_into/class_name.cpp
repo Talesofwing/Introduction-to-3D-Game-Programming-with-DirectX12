@@ -34,6 +34,8 @@ struct RenderItem {
 
 enum class RenderLayer : int {
 	Opaque = 0,
+	Transparent,
+	AlphaTested,
 	Count
 };
 
@@ -63,17 +65,25 @@ private:
 	void AnimateMaterials (const GameTimer& gt);
 
 	void LoadTextures ();
+	void BuildScene ();
+	void BuildMaterials ();
+	void BuildRenderItems ();
 	void BuildDescriptorHeaps ();
 	void BuildRootSignature ();
 	void BuildShadersAndInputLayout ();
 	void BuildPSOs ();
-	void BuildMaterials ();
-	void BuildRenderItems ();
 	void BuildFrameResources ();
 
+	void LoadDefultSceneTextures ();
 	void BuildDefaultScene ();
+	void BuildDefaultSceneMaterials ();
+	void BuildDefaultSceneRenderItems ();
+	void BuildDefaultSceneDescriptorHeaps ();
 
 	void DrawRenderItems (ID3D12GraphicsCommandList* cmdList, const std::vector<RenderItem*>& ritems);
+
+	float GetHillsHeight (float x, float z) const;
+	XMFLOAT3 GetHillsNormal (float x, float z) const;
 
 	std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> GetStaticSamplers ();
 
@@ -134,14 +144,20 @@ bool class_name::Initialize () {
 		return false;
 
 	ThrowIfFailed (m_CmdList->Reset (m_CmdAllocator.Get (), nullptr));
+	
+	LoadDefultSceneTextures ();
+	BuildDefaultScene ();
+	BuildDefaultSceneMaterials ();
+	BuildDefaultSceneRenderItems ();
+	BuildDefaultSceneDescriptorHeaps ();
 
 	LoadTextures ();
+	BuildScene ();
+	BuildMaterials ();
+	BuildRenderItems ();
 	BuildDescriptorHeaps ();
 	BuildRootSignature ();
 	BuildShadersAndInputLayout ();
-	BuildDefaultScene ();
-	BuildMaterials ();
-	BuildRenderItems ();
 	BuildFrameResources ();
 	BuildPSOs ();
 
@@ -158,7 +174,9 @@ bool class_name::Initialize () {
 	return true;
 }
 
-void class_name::LoadTextures () {
+#pragma region Default Scene
+
+void class_name::LoadDefultSceneTextures () {
 	auto bricksTex = std::make_unique<Texture> ();
 	bricksTex->Name = "bricksTex";
 	bricksTex->Filename = L"../../../Textures/bricks.dds";
@@ -188,131 +206,6 @@ void class_name::LoadTextures () {
 	m_Textures[tileTex->Name] = std::move (tileTex);
 }
 
-void class_name::BuildDescriptorHeaps () {
-	//
-	// Create the SRV heap.
-	//
-	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
-	srvHeapDesc.NumDescriptors = 3;
-	srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	ThrowIfFailed (m_Device->CreateDescriptorHeap (&srvHeapDesc, IID_PPV_ARGS (&m_SrvDescriptorHeap)));
-
-	//
-	// Fill out the heap with actual descriptors.
-	//
-	CD3DX12_CPU_DESCRIPTOR_HANDLE hDescriptor (m_SrvDescriptorHeap->GetCPUDescriptorHandleForHeapStart ());
-
-	auto bricksTex = m_Textures["bricksTex"]->Resource;
-
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.Format = bricksTex->GetDesc ().Format;
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	srvDesc.Texture2D.MostDetailedMip = 0;
-	srvDesc.Texture2D.MipLevels = bricksTex->GetDesc ().MipLevels;
-	srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
-
-	m_Device->CreateShaderResourceView (bricksTex.Get (), &srvDesc, hDescriptor);
-
-	hDescriptor.Offset (1, m_CbvSrvUavDescriptorSize);
-
-	auto stoneTex = m_Textures["stoneTex"]->Resource;
-	srvDesc.Format = stoneTex->GetDesc ().Format;
-	srvDesc.Texture2D.MipLevels = stoneTex->GetDesc ().MipLevels;
-	m_Device->CreateShaderResourceView (stoneTex.Get (), &srvDesc, hDescriptor);
-
-	hDescriptor.Offset (1, m_CbvSrvUavDescriptorSize);
-
-	auto tileTex = m_Textures["tileTex"]->Resource;
-	srvDesc.Format = tileTex->GetDesc ().Format;
-	srvDesc.Texture2D.MipLevels = tileTex->GetDesc ().MipLevels;
-	m_Device->CreateShaderResourceView (tileTex.Get (), &srvDesc, hDescriptor);
-}
-
-void class_name::BuildRootSignature () {
-	CD3DX12_DESCRIPTOR_RANGE texTable;
-	texTable.Init (D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
-
-	CD3DX12_ROOT_PARAMETER slotRootParameter[4];
-
-	slotRootParameter[0].InitAsDescriptorTable (1, &texTable, D3D12_SHADER_VISIBILITY_PIXEL);
-	slotRootParameter[1].InitAsConstantBufferView (0);
-	slotRootParameter[2].InitAsConstantBufferView (1);
-	slotRootParameter[3].InitAsConstantBufferView (2);
-
-	auto staticSamplers = GetStaticSamplers ();
-
-	CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc (_countof (slotRootParameter), slotRootParameter,
-											 (UINT)staticSamplers.size (), staticSamplers.data (),
-											 D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-
-	ComPtr<ID3DBlob> serializedRootSig = nullptr;
-	ComPtr<ID3DBlob> errorBlob = nullptr;
-	HRESULT hr = D3D12SerializeRootSignature (&rootSigDesc, D3D_ROOT_SIGNATURE_VERSION_1,
-											  serializedRootSig.GetAddressOf (), errorBlob.GetAddressOf ());
-
-	if (errorBlob != nullptr) {
-		OutputDebugStringA ((char*)errorBlob->GetBufferPointer ());
-	}
-	ThrowIfFailed (hr);
-
-	ThrowIfFailed (m_Device->CreateRootSignature (
-		0,
-		serializedRootSig->GetBufferPointer (),
-		serializedRootSig->GetBufferSize (),
-		IID_PPV_ARGS (m_RootSignature.GetAddressOf ()))
-	);
-}
-
-void class_name::BuildShadersAndInputLayout () {
-	m_Shaders["standardVS"] = D3DUtil::CompileShader (L"Shaders/Default.hlsl", nullptr, "VS", "vs_5_0");
-	m_Shaders["opaquePS"] = D3DUtil::CompileShader (L"Shaders/Default.hlsl", nullptr, "PS", "ps_5_0");
-
-	m_InputLayout = {
-		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
-		{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
-		{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0}
-	};
-}
-
-void class_name::BuildPSOs () {
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC opaquePsoDesc;
-	ZeroMemory (&opaquePsoDesc, sizeof (D3D12_GRAPHICS_PIPELINE_STATE_DESC));
-
-	//
-	// PSO for opaque objects.
-	//
-	opaquePsoDesc.InputLayout = {m_InputLayout.data (), (UINT)m_InputLayout.size ()};
-	opaquePsoDesc.pRootSignature = m_RootSignature.Get ();
-	opaquePsoDesc.VS = {
-		m_Shaders["standardVS"]->GetBufferPointer (),
-		m_Shaders["standardVS"]->GetBufferSize ()
-	};
-	opaquePsoDesc.PS = {
-		m_Shaders["opaquePS"]->GetBufferPointer (),
-		m_Shaders["opaquePS"]->GetBufferSize ()
-	};
-	opaquePsoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC (D3D12_DEFAULT);
-	opaquePsoDesc.BlendState = CD3DX12_BLEND_DESC (D3D12_DEFAULT);
-	opaquePsoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC (D3D12_DEFAULT);
-	opaquePsoDesc.SampleMask = UINT_MAX;
-	opaquePsoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	opaquePsoDesc.NumRenderTargets = 1;
-	opaquePsoDesc.RTVFormats[0] = m_BackBufferFormat;
-	opaquePsoDesc.SampleDesc.Count = m_4xMsaaState ? 4 : 1;
-	opaquePsoDesc.SampleDesc.Quality = m_4xMsaaState ? (m_4xMsaaQuality - 1) : 0;
-	opaquePsoDesc.DSVFormat = m_DepthStencilFormat;
-	ThrowIfFailed (m_Device->CreateGraphicsPipelineState (&opaquePsoDesc, IID_PPV_ARGS (&m_PSOs["opaque"])));
-
-	//
-	// PSO for opaque wireframe objects.
-	//
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC opaqueWireframePsoDesc = opaquePsoDesc;
-	opaqueWireframePsoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
-	ThrowIfFailed (m_Device->CreateGraphicsPipelineState (&opaqueWireframePsoDesc, IID_PPV_ARGS (&m_PSOs["opaque_wireframe"])));
-}
-
 void class_name::BuildDefaultScene () {
 	GeometryGenerator geoGen;
 	GeometryGenerator::MeshData box = geoGen.CreateBox (1.0f, 1.0f, 1.0f, 3);
@@ -322,13 +215,13 @@ void class_name::BuildDefaultScene () {
 
 	UINT boxVertexOffset = 0;
 	UINT gridVertexOffset = (UINT)box.Vertices.size ();
-	UINT sphereVertexOffset = gridVertexOffset  + (UINT)grid.Vertices.size ();
-	UINT cylinderVertexOffset = sphereVertexOffset  + (UINT)sphere.Vertices.size ();
+	UINT sphereVertexOffset = gridVertexOffset + (UINT)grid.Vertices.size ();
+	UINT cylinderVertexOffset = sphereVertexOffset + (UINT)sphere.Vertices.size ();
 
 	UINT boxIndexOffset = 0;
 	UINT gridIndexOffset = (UINT)box.Indices32.size ();
-	UINT sphereIndexOffset = gridIndexOffset  + (UINT)grid.Indices32.size ();
-	UINT cylinderIndexOffset = sphereIndexOffset  + (UINT)sphere.Indices32.size ();
+	UINT sphereIndexOffset = gridIndexOffset + (UINT)grid.Indices32.size ();
+	UINT cylinderIndexOffset = sphereIndexOffset + (UINT)sphere.Indices32.size ();
 
 	SubmeshGeometry boxSubmesh;
 	boxSubmesh.IndexCount = box.Indices32.size ();
@@ -415,7 +308,7 @@ void class_name::BuildDefaultScene () {
 	m_Geometries[geo->Name] = std::move (geo);
 }
 
-void class_name::BuildMaterials () {
+void class_name::BuildDefaultSceneMaterials () {
 	auto bricks0 = std::make_unique<Material> ();
 	bricks0->Name = "bricks0";
 	bricks0->MatCBIndex = 0;
@@ -445,7 +338,7 @@ void class_name::BuildMaterials () {
 	m_Materials["tile0"] = std::move (tile0);
 }
 
-void class_name::BuildRenderItems () {
+void class_name::BuildDefaultSceneRenderItems () {
 	auto boxRitem = std::make_unique<RenderItem> ();
 	XMStoreFloat4x4 (&boxRitem->World, XMMatrixScaling (2.0f, 2.0f, 2.0f) * XMMatrixTranslation (0.0f, 1.0f, 0.0f));
 	XMStoreFloat4x4 (&boxRitem->TexTransform, XMMatrixScaling (1.0f, 1.0f, 1.0f));
@@ -532,6 +425,197 @@ void class_name::BuildRenderItems () {
 
 	for (auto& e : m_AllRitems)
 		m_RitemLayer[(int)RenderLayer::Opaque].push_back (e.get ());
+}
+
+void class_name::BuildDefaultSceneDescriptorHeaps () {
+	//
+	// Create the SRV heap.
+	//
+	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
+	srvHeapDesc.NumDescriptors = 3;
+	srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	ThrowIfFailed (m_Device->CreateDescriptorHeap (&srvHeapDesc, IID_PPV_ARGS (&m_SrvDescriptorHeap)));
+
+	//
+	// Fill out the heap with actual descriptors.
+	//
+	CD3DX12_CPU_DESCRIPTOR_HANDLE hDescriptor (m_SrvDescriptorHeap->GetCPUDescriptorHandleForHeapStart ());
+
+	auto bricksTex = m_Textures["bricksTex"]->Resource;
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Format = bricksTex->GetDesc ().Format;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	srvDesc.Texture2D.MipLevels = bricksTex->GetDesc ().MipLevels;
+	srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+
+	m_Device->CreateShaderResourceView (bricksTex.Get (), &srvDesc, hDescriptor);
+
+	hDescriptor.Offset (1, m_CbvSrvUavDescriptorSize);
+
+	auto stoneTex = m_Textures["stoneTex"]->Resource;
+	srvDesc.Format = stoneTex->GetDesc ().Format;
+	srvDesc.Texture2D.MipLevels = stoneTex->GetDesc ().MipLevels;
+	m_Device->CreateShaderResourceView (stoneTex.Get (), &srvDesc, hDescriptor);
+
+	hDescriptor.Offset (1, m_CbvSrvUavDescriptorSize);
+
+	auto tileTex = m_Textures["tileTex"]->Resource;
+	srvDesc.Format = tileTex->GetDesc ().Format;
+	srvDesc.Texture2D.MipLevels = tileTex->GetDesc ().MipLevels;
+	m_Device->CreateShaderResourceView (tileTex.Get (), &srvDesc, hDescriptor);
+}
+
+#pragma endregion
+
+void class_name::LoadTextures () {
+
+}
+
+void class_name::BuildScene () {
+
+}
+
+void class_name::BuildMaterials () {
+
+}
+
+void class_name::BuildRenderItems () {
+
+}
+
+void class_name::BuildDescriptorHeaps () {
+
+}
+
+void class_name::BuildRootSignature () {
+	CD3DX12_DESCRIPTOR_RANGE texTable;
+	texTable.Init (D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
+
+	CD3DX12_ROOT_PARAMETER slotRootParameter[4];
+
+	slotRootParameter[0].InitAsDescriptorTable (1, &texTable, D3D12_SHADER_VISIBILITY_PIXEL);
+	slotRootParameter[1].InitAsConstantBufferView (0);
+	slotRootParameter[2].InitAsConstantBufferView (1);
+	slotRootParameter[3].InitAsConstantBufferView (2);
+
+	auto staticSamplers = GetStaticSamplers ();
+
+	CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc (_countof (slotRootParameter), slotRootParameter,
+											 (UINT)staticSamplers.size (), staticSamplers.data (),
+											 D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+	ComPtr<ID3DBlob> serializedRootSig = nullptr;
+	ComPtr<ID3DBlob> errorBlob = nullptr;
+	HRESULT hr = D3D12SerializeRootSignature (&rootSigDesc, D3D_ROOT_SIGNATURE_VERSION_1,
+											  serializedRootSig.GetAddressOf (), errorBlob.GetAddressOf ());
+
+	if (errorBlob != nullptr) {
+		OutputDebugStringA ((char*)errorBlob->GetBufferPointer ());
+	}
+	ThrowIfFailed (hr);
+
+	ThrowIfFailed (m_Device->CreateRootSignature (
+		0,
+		serializedRootSig->GetBufferPointer (),
+		serializedRootSig->GetBufferSize (),
+		IID_PPV_ARGS (m_RootSignature.GetAddressOf ()))
+	);
+}
+
+void class_name::BuildShadersAndInputLayout () {
+	const D3D_SHADER_MACRO defines[] = {
+		"FOG", "1",
+		NULL, NULL
+	};
+
+	const D3D_SHADER_MACRO alphaTestDefines[] = {
+		"FOG", "1",
+		"ALPHA_TEST", "1",
+		NULL, NULL
+	};
+
+	m_Shaders["standardVS"] = D3DUtil::CompileShader (L"Shaders/Default.hlsl", nullptr, "VS", "vs_5_0");
+	m_Shaders["opaquePS"] = D3DUtil::CompileShader (L"Shaders/Default.hlsl", defines, "PS", "ps_5_0");
+	m_Shaders["alphaTestedPS"] = D3DUtil::CompileShader (L"Shaders/Default.hlsl", alphaTestDefines, "PS", "ps_5_0");
+
+	m_InputLayout = {
+		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+		{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+		{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0}
+	};
+}
+
+void class_name::BuildPSOs () {
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC opaquePsoDesc;
+	ZeroMemory (&opaquePsoDesc, sizeof (D3D12_GRAPHICS_PIPELINE_STATE_DESC));
+
+	//
+	// PSO for opaque objects.
+	//
+	opaquePsoDesc.InputLayout = {m_InputLayout.data (), (UINT)m_InputLayout.size ()};
+	opaquePsoDesc.pRootSignature = m_RootSignature.Get ();
+	opaquePsoDesc.VS = {
+		m_Shaders["standardVS"]->GetBufferPointer (),
+		m_Shaders["standardVS"]->GetBufferSize ()
+	};
+	opaquePsoDesc.PS = {
+		m_Shaders["opaquePS"]->GetBufferPointer (),
+		m_Shaders["opaquePS"]->GetBufferSize ()
+	};
+	opaquePsoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC (D3D12_DEFAULT);
+	opaquePsoDesc.BlendState = CD3DX12_BLEND_DESC (D3D12_DEFAULT);
+	opaquePsoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC (D3D12_DEFAULT);
+	opaquePsoDesc.SampleMask = UINT_MAX;
+	opaquePsoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	opaquePsoDesc.NumRenderTargets = 1;
+	opaquePsoDesc.RTVFormats[0] = m_BackBufferFormat;
+	opaquePsoDesc.SampleDesc.Count = m_4xMsaaState ? 4 : 1;
+	opaquePsoDesc.SampleDesc.Quality = m_4xMsaaState ? (m_4xMsaaQuality - 1) : 0;
+	opaquePsoDesc.DSVFormat = m_DepthStencilFormat;
+	ThrowIfFailed (m_Device->CreateGraphicsPipelineState (&opaquePsoDesc, IID_PPV_ARGS (&m_PSOs["opaque"])));
+
+	//
+	// PSO for opaque wireframe objects.
+	//
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC opaqueWireframePsoDesc = opaquePsoDesc;
+	opaqueWireframePsoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
+	ThrowIfFailed (m_Device->CreateGraphicsPipelineState (&opaqueWireframePsoDesc, IID_PPV_ARGS (&m_PSOs["opaque_wireframe"])));
+
+	//
+	// PSO for transparent objects.
+	//
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC transparentPsoDesc = opaquePsoDesc;
+
+	D3D12_RENDER_TARGET_BLEND_DESC transparencyBlendDesc;
+	transparencyBlendDesc.BlendEnable = true;
+	transparencyBlendDesc.LogicOpEnable = false;
+	transparencyBlendDesc.SrcBlend = D3D12_BLEND_SRC_ALPHA;
+	transparencyBlendDesc.DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+	transparencyBlendDesc.BlendOp = D3D12_BLEND_OP_ADD;
+	transparencyBlendDesc.SrcBlendAlpha = D3D12_BLEND_ONE;
+	transparencyBlendDesc.DestBlendAlpha = D3D12_BLEND_ZERO;
+	transparencyBlendDesc.BlendOpAlpha = D3D12_BLEND_OP_ADD;
+	transparencyBlendDesc.LogicOp = D3D12_LOGIC_OP_NOOP;
+	transparencyBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+
+	transparentPsoDesc.BlendState.RenderTarget[0] = transparencyBlendDesc;
+	ThrowIfFailed (m_Device->CreateGraphicsPipelineState (&transparentPsoDesc, IID_PPV_ARGS (&m_PSOs["transparent"])));
+
+	//
+	// PSO for alpha tested objects.
+	//
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC alphaTestedPsoDesc = opaquePsoDesc;
+	alphaTestedPsoDesc.PS = {
+		m_Shaders["alphaTestedPS"]->GetBufferPointer (),
+		m_Shaders["alphaTestedPS"]->GetBufferSize ()
+	};
+	alphaTestedPsoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+	ThrowIfFailed (m_Device->CreateGraphicsPipelineState (&alphaTestedPsoDesc, IID_PPV_ARGS (&m_PSOs["alphaTested"])));
+
 }
 
 void class_name::BuildFrameResources () {
@@ -623,11 +707,11 @@ void class_name::UpdateMainPassCB (const GameTimer& gt) {
 	m_MainPassCB.DeltaTime = gt.DeltaTime ();
 	m_MainPassCB.AmbientLight = {0.25f, 0.25f, 0.35f, 1.0f};
 	m_MainPassCB.Lights[0].Direction = {0.57735f, -0.57735f, 0.57735f};
-	m_MainPassCB.Lights[0].Strength = {0.8f, 0.8f, 0.8f};
+	m_MainPassCB.Lights[0].Strength = {0.9f, 0.9f, 0.8f};
 	m_MainPassCB.Lights[1].Direction = {-0.57735f, -0.57735f, 0.57735f};
-	m_MainPassCB.Lights[1].Strength = {0.4f, 0.4f, 0.4f};
+	m_MainPassCB.Lights[1].Strength = {0.3f, 0.3f, 0.3f};
 	m_MainPassCB.Lights[2].Direction = {0.0f, -0.707f, -0.707f};
-	m_MainPassCB.Lights[2].Strength = {0.2f, 0.2f, 0.2f};
+	m_MainPassCB.Lights[2].Strength = {0.15f, 0.15f, 0.15f};
 
 	auto currPassCB = m_CurrFrameResource->PassCB.get ();
 	currPassCB->CopyData (0, m_MainPassCB);
@@ -766,58 +850,75 @@ void class_name::OnMouseUp (WPARAM btnState, int x, int y) {
 }
 
 std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> class_name::GetStaticSamplers () {
-	// ‘ªÓÃ³ÌĞòÒ»°ãÖ»•şÓÃµ½ß@Ğ©²É˜ÓÆ÷ÖĞµÄÒ»²¿·Ö
-	// ËùÒÔ¾ÍŒ¢Ëü‚ƒÈ«²¿ÌáÇ°¶¨ÁxºÃ,K×÷é¸ùºÃûµÄÒ»²¿·Ö±£ÁôÏÂí
+	// æ‡‰ç”¨ç¨‹åºä¸€èˆ¬åªæœƒç”¨åˆ°é€™äº›é‡‡æ¨£å™¨ä¸­çš„ä¸€éƒ¨åˆ†
+	// æ‰€ä»¥å°±å°‡å®ƒå€‘å…¨éƒ¨æå‰å®šç¾©å¥½,ä¸¦ä½œç‚ºæ ¹ç°½åçš„ä¸€éƒ¨åˆ†ä¿ç•™ä¸‹ä¾†
 
 	const CD3DX12_STATIC_SAMPLER_DESC pointWrap (
-		0, 										// ÖøÉ«Æ÷¼Ä´æÆ÷
-		D3D12_FILTER_MIN_MAG_MIP_POINT, 		// ß^VÆ÷îĞÍ
-		D3D12_TEXTURE_ADDRESS_MODE_WRAP,  		// UİS·½ÏòÉÏËùÓÃµÄŒ¤Ö·Ä£Ê½
-		D3D12_TEXTURE_ADDRESS_MODE_WRAP,  		// VİS·½ÏòÉÏËùÓÃµÄŒ¤Ö·Ä£Ê½
-		D3D12_TEXTURE_ADDRESS_MODE_WRAP); 		// WİS·½ÏòÉÏËùÓÃµÄŒ¤Ö·Ä£Ê½
+		0, 										// è‘—è‰²å™¨å¯„å­˜å™¨
+		D3D12_FILTER_MIN_MAG_MIP_POINT, 		// éæ¿¾å™¨é¡å‹
+		D3D12_TEXTURE_ADDRESS_MODE_WRAP,  		// Uè»¸æ–¹å‘ä¸Šæ‰€ç”¨çš„å°‹å€æ¨¡å¼
+		D3D12_TEXTURE_ADDRESS_MODE_WRAP,  		// Vè»¸æ–¹å‘ä¸Šæ‰€ç”¨çš„å°‹å€æ¨¡å¼
+		D3D12_TEXTURE_ADDRESS_MODE_WRAP); 		// Wè»¸æ–¹å‘ä¸Šæ‰€ç”¨çš„å°‹å€æ¨¡å¼
 
 	const CD3DX12_STATIC_SAMPLER_DESC pointClamp (
-		1, 										// ÖøÉ«Æ÷¼Ä´æÆ÷
-		D3D12_FILTER_MIN_MAG_MIP_POINT, 		// ß^VÆ÷îĞÍ
-		D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  		// UİS·½ÏòÉÏËùÓÃµÄŒ¤Ö·Ä£Ê½
-		D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  		// VİS·½ÏòÉÏËùÓÃµÄŒ¤Ö·Ä£Ê½
-		D3D12_TEXTURE_ADDRESS_MODE_CLAMP); 		// WİS·½ÏòÉÏËùÓÃµÄŒ¤Ö·Ä£Ê½
+		1, 										// è‘—è‰²å™¨å¯„å­˜å™¨
+		D3D12_FILTER_MIN_MAG_MIP_POINT, 		// éæ¿¾å™¨é¡å‹
+		D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  		// Uè»¸æ–¹å‘ä¸Šæ‰€ç”¨çš„å°‹å€æ¨¡å¼
+		D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  		// Vè»¸æ–¹å‘ä¸Šæ‰€ç”¨çš„å°‹å€æ¨¡å¼
+		D3D12_TEXTURE_ADDRESS_MODE_CLAMP); 		// Wè»¸æ–¹å‘ä¸Šæ‰€ç”¨çš„å°‹å€æ¨¡å¼
 
 	const CD3DX12_STATIC_SAMPLER_DESC linearWrap (
-		2, 										// ÖøÉ«Æ÷¼Ä´æÆ÷
-		D3D12_FILTER_MIN_MAG_MIP_LINEAR, 		// ß^VÆ÷îĞÍ
-		D3D12_TEXTURE_ADDRESS_MODE_WRAP,  		// UİS·½ÏòÉÏËùÓÃµÄŒ¤Ö·Ä£Ê½
-		D3D12_TEXTURE_ADDRESS_MODE_WRAP,  		// VİS·½ÏòÉÏËùÓÃµÄŒ¤Ö·Ä£Ê½
-		D3D12_TEXTURE_ADDRESS_MODE_WRAP); 		// WİS·½ÏòÉÏËùÓÃµÄŒ¤Ö·Ä£Ê½
+		2, 										// è‘—è‰²å™¨å¯„å­˜å™¨
+		D3D12_FILTER_MIN_MAG_MIP_LINEAR, 		// éæ¿¾å™¨é¡å‹
+		D3D12_TEXTURE_ADDRESS_MODE_WRAP,  		// Uè»¸æ–¹å‘ä¸Šæ‰€ç”¨çš„å°‹å€æ¨¡å¼
+		D3D12_TEXTURE_ADDRESS_MODE_WRAP,  		// Vè»¸æ–¹å‘ä¸Šæ‰€ç”¨çš„å°‹å€æ¨¡å¼
+		D3D12_TEXTURE_ADDRESS_MODE_WRAP); 		// Wè»¸æ–¹å‘ä¸Šæ‰€ç”¨çš„å°‹å€æ¨¡å¼
 
 	const CD3DX12_STATIC_SAMPLER_DESC linearClamp (
-		3, 										// ÖøÉ«Æ÷¼Ä´æÆ÷
-		D3D12_FILTER_MIN_MAG_MIP_LINEAR, 		// ß^VÆ÷îĞÍ
-		D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  		// UİS·½ÏòÉÏËùÓÃµÄŒ¤Ö·Ä£Ê½
-		D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  		// VİS·½ÏòÉÏËùÓÃµÄŒ¤Ö·Ä£Ê½
-		D3D12_TEXTURE_ADDRESS_MODE_CLAMP); 		// WİS·½ÏòÉÏËùÓÃµÄŒ¤Ö·Ä£Ê½
+		3, 										// è‘—è‰²å™¨å¯„å­˜å™¨
+		D3D12_FILTER_MIN_MAG_MIP_LINEAR, 		// éæ¿¾å™¨é¡å‹
+		D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  		// Uè»¸æ–¹å‘ä¸Šæ‰€ç”¨çš„å°‹å€æ¨¡å¼
+		D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  		// Vè»¸æ–¹å‘ä¸Šæ‰€ç”¨çš„å°‹å€æ¨¡å¼
+		D3D12_TEXTURE_ADDRESS_MODE_CLAMP); 		// Wè»¸æ–¹å‘ä¸Šæ‰€ç”¨çš„å°‹å€æ¨¡å¼
 
 	const CD3DX12_STATIC_SAMPLER_DESC anisotropicWrap (
-		4, 										// ÖøÉ«Æ÷¼Ä´æÆ÷
-		D3D12_FILTER_ANISOTROPIC, 				// ß^VÆ÷îĞÍ
-		D3D12_TEXTURE_ADDRESS_MODE_WRAP,  		// UİS·½ÏòÉÏËùÓÃµÄŒ¤Ö·Ä£Ê½
-		D3D12_TEXTURE_ADDRESS_MODE_WRAP,  		// VİS·½ÏòÉÏËùÓÃµÄŒ¤Ö·Ä£Ê½
-		D3D12_TEXTURE_ADDRESS_MODE_WRAP,  		// WİS·½ÏòÉÏËùÓÃµÄŒ¤Ö·Ä£Ê½
-		0.0f,                             		// mipmapŒÓ¼‰µÄÆ«ÖÃÖµ
-		8);                               		// ×î´ó¸÷Ïò®ĞÔÖµ
+		4, 										// è‘—è‰²å™¨å¯„å­˜å™¨
+		D3D12_FILTER_ANISOTROPIC, 				// éæ¿¾å™¨é¡å‹
+		D3D12_TEXTURE_ADDRESS_MODE_WRAP,  		// Uè»¸æ–¹å‘ä¸Šæ‰€ç”¨çš„å°‹å€æ¨¡å¼
+		D3D12_TEXTURE_ADDRESS_MODE_WRAP,  		// Vè»¸æ–¹å‘ä¸Šæ‰€ç”¨çš„å°‹å€æ¨¡å¼
+		D3D12_TEXTURE_ADDRESS_MODE_WRAP,  		// Wè»¸æ–¹å‘ä¸Šæ‰€ç”¨çš„å°‹å€æ¨¡å¼
+		0.0f,                             		// mipmapå±¤ç´šçš„åç½®å€¼
+		8);                               		// æœ€å¤§å„å‘ç•°æ€§å€¼
 
 	const CD3DX12_STATIC_SAMPLER_DESC anisotropicClamp (
-		5, 										// ÖøÉ«Æ÷¼Ä´æÆ÷
-		D3D12_FILTER_ANISOTROPIC, 				// ß^VÆ÷îĞÍ
-		D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  		// UİS·½ÏòÉÏËùÓÃµÄŒ¤Ö·Ä£Ê½
-		D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  		// VİS·½ÏòÉÏËùÓÃµÄŒ¤Ö·Ä£Ê½
-		D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  		// WİS·½ÏòÉÏËùÓÃµÄŒ¤Ö·Ä£Ê½
-		0.0f,                              		// mipmapŒÓ¼‰µÄÆ«ÖÃÖµ
-		8);                                		// ×î´ó¸÷Ïò®ĞÔÖµ
+		5, 										// è‘—è‰²å™¨å¯„å­˜å™¨
+		D3D12_FILTER_ANISOTROPIC, 				// éæ¿¾å™¨é¡å‹
+		D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  		// Uè»¸æ–¹å‘ä¸Šæ‰€ç”¨çš„å°‹å€æ¨¡å¼
+		D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  		// Vè»¸æ–¹å‘ä¸Šæ‰€ç”¨çš„å°‹å€æ¨¡å¼
+		D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  		// Wè»¸æ–¹å‘ä¸Šæ‰€ç”¨çš„å°‹å€æ¨¡å¼
+		0.0f,                              		// mipmapå±¤ç´šçš„åç½®å€¼
+		8);                                		// æœ€å¤§å„å‘ç•°æ€§å€¼
 
 	return {pointWrap, pointClamp,
 		linearWrap, linearClamp,
 		anisotropicWrap, anisotropicClamp};
+}
+
+float class_name::GetHillsHeight (float x, float z)const {
+	return 0.3f * (z * sinf (0.1f * x) + x * cosf (0.1f * z));
+}
+
+XMFLOAT3 class_name::GetHillsNormal (float x, float z)const {
+	// n = (-df/dx, 1, -df/dz)
+	XMFLOAT3 n (
+		-0.03f * z * cosf (0.1f * x) - 0.3f * cosf (0.1f * z),
+		1.0f,
+		-0.3f * sinf (0.1f * x) + 0.03f * x * sinf (0.1f * z));
+
+	XMVECTOR unitNormal = XMVector3Normalize (XMLoadFloat3 (&n));
+	XMStoreFloat3 (&n, unitNormal);
+
+	return n;
 }
 
 int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE prevInstance,

@@ -37,12 +37,12 @@ enum class RenderLayer : int {
 	Count
 };
 
-class class_name : public D3DApp {
+class TexColumnsApp : public D3DApp {
 public:
-	class_name (HINSTANCE hInstance);
-	class_name (const class_name& rhs) = delete;
-	class_name& operator=(const class_name& rhs) = delete;
-	~class_name ();
+	TexColumnsApp (HINSTANCE hInstance);
+	TexColumnsApp (const TexColumnsApp& rhs) = delete;
+	TexColumnsApp& operator=(const TexColumnsApp& rhs) = delete;
+	~TexColumnsApp ();
 
 	virtual bool Initialize () override;
 
@@ -113,23 +113,23 @@ private:
 	POINT m_LastMousePos;
 };
 
-class_name::class_name (HINSTANCE hInstance) : D3DApp (hInstance) {
+TexColumnsApp::TexColumnsApp (HINSTANCE hInstance) : D3DApp (hInstance) {
 	m_MainWndCaption = L"Chapter - ";
 }
 
-class_name::~class_name () {
+TexColumnsApp::~TexColumnsApp () {
 	if (m_Device != nullptr)
 		FlushCommandQueue ();
 }
 
-void class_name::OnResize () {
+void TexColumnsApp::OnResize () {
 	D3DApp::OnResize ();
 
 	XMMATRIX P = XMMatrixPerspectiveFovLH (0.25f * MathHelper::PI, AspectRatio (), 1.0f, 1000.0f);
 	XMStoreFloat4x4 (&m_Proj, P);
 }
 
-bool class_name::Initialize () {
+bool TexColumnsApp::Initialize () {
 	if (!D3DApp::Initialize ())
 		return false;
 
@@ -158,7 +158,7 @@ bool class_name::Initialize () {
 	return true;
 }
 
-void class_name::LoadTextures () {
+void TexColumnsApp::LoadTextures () {
 	auto bricksTex = std::make_unique<Texture> ();
 	bricksTex->Name = "bricksTex";
 	bricksTex->Filename = L"../../../Textures/bricks.dds";
@@ -188,7 +188,7 @@ void class_name::LoadTextures () {
 	m_Textures[tileTex->Name] = std::move (tileTex);
 }
 
-void class_name::BuildDescriptorHeaps () {
+void TexColumnsApp::BuildDescriptorHeaps () {
 	//
 	// Create the SRV heap.
 	//
@@ -230,7 +230,7 @@ void class_name::BuildDescriptorHeaps () {
 	m_Device->CreateShaderResourceView (tileTex.Get (), &srvDesc, hDescriptor);
 }
 
-void class_name::BuildRootSignature () {
+void TexColumnsApp::BuildRootSignature () {
 	CD3DX12_DESCRIPTOR_RANGE texTable;
 	texTable.Init (D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
 
@@ -265,7 +265,7 @@ void class_name::BuildRootSignature () {
 	);
 }
 
-void class_name::BuildShadersAndInputLayout () {
+void TexColumnsApp::BuildShadersAndInputLayout () {
 	m_Shaders["standardVS"] = D3DUtil::CompileShader (L"Shaders/Default.hlsl", nullptr, "VS", "vs_5_0");
 	m_Shaders["opaquePS"] = D3DUtil::CompileShader (L"Shaders/Default.hlsl", nullptr, "PS", "ps_5_0");
 
@@ -276,7 +276,7 @@ void class_name::BuildShadersAndInputLayout () {
 	};
 }
 
-void class_name::BuildPSOs () {
+void TexColumnsApp::BuildPSOs () {
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC opaquePsoDesc;
 	ZeroMemory (&opaquePsoDesc, sizeof (D3D12_GRAPHICS_PIPELINE_STATE_DESC));
 
@@ -313,7 +313,7 @@ void class_name::BuildPSOs () {
 	ThrowIfFailed (m_Device->CreateGraphicsPipelineState (&opaqueWireframePsoDesc, IID_PPV_ARGS (&m_PSOs["opaque_wireframe"])));
 }
 
-void class_name::BuildDefaultScene () {
+void TexColumnsApp::BuildDefaultScene () {
 	GeometryGenerator geoGen;
 	GeometryGenerator::MeshData box = geoGen.CreateBox (1.0f, 1.0f, 1.0f, 3);
 	GeometryGenerator::MeshData grid = geoGen.CreateGrid (20.0f, 30.0f, 60, 40);
@@ -415,7 +415,7 @@ void class_name::BuildDefaultScene () {
 	m_Geometries[geo->Name] = std::move (geo);
 }
 
-void class_name::BuildMaterials () {
+void TexColumnsApp::BuildMaterials () {
 	auto bricks0 = std::make_unique<Material> ();
 	bricks0->Name = "bricks0";
 	bricks0->MatCBIndex = 0;
@@ -445,7 +445,7 @@ void class_name::BuildMaterials () {
 	m_Materials["tile0"] = std::move (tile0);
 }
 
-void class_name::BuildRenderItems () {
+void TexColumnsApp::BuildRenderItems () {
 	auto boxRitem = std::make_unique<RenderItem> ();
 	XMStoreFloat4x4 (&boxRitem->World, XMMatrixScaling (2.0f, 2.0f, 2.0f) * XMMatrixTranslation (0.0f, 1.0f, 0.0f));
 	XMStoreFloat4x4 (&boxRitem->TexTransform, XMMatrixScaling (1.0f, 1.0f, 1.0f));
@@ -534,19 +534,19 @@ void class_name::BuildRenderItems () {
 		m_RitemLayer[(int)RenderLayer::Opaque].push_back (e.get ());
 }
 
-void class_name::BuildFrameResources () {
+void TexColumnsApp::BuildFrameResources () {
 	for (int i = 0; i < g_NumFrameResources; i++)
 		m_FrameResources.push_back (std::make_unique<FrameResource> (m_Device.Get (), 1, (UINT)m_AllRitems.size (), (UINT)m_Materials.size ()));
 }
 
-void class_name::OnKeyboardInput (const GameTimer& gt) {
+void TexColumnsApp::OnKeyboardInput (const GameTimer& gt) {
 	if (GetAsyncKeyState ('1') & 0x8000)
 		m_IsWireFrame = true;
 	else
 		m_IsWireFrame = false;
 }
 
-void class_name::UpdateCamera (const GameTimer& gt) {
+void TexColumnsApp::UpdateCamera (const GameTimer& gt) {
 	m_Eye.x = m_Radius * sinf (m_Phi) * cosf (m_Theta);
 	m_Eye.y = m_Radius * cosf (m_Phi);
 	m_Eye.z = m_Radius * sinf (m_Phi) * sinf (m_Theta);
@@ -559,7 +559,7 @@ void class_name::UpdateCamera (const GameTimer& gt) {
 	XMStoreFloat4x4 (&m_View, view);
 }
 
-void class_name::Update (const GameTimer& gt) {
+void TexColumnsApp::Update (const GameTimer& gt) {
 	UpdateCamera (gt);
 	OnKeyboardInput (gt);
 
@@ -579,9 +579,9 @@ void class_name::Update (const GameTimer& gt) {
 	UpdateMaterialCBs (gt);
 }
 
-void class_name::AnimateMaterials (const GameTimer& gt) {}
+void TexColumnsApp::AnimateMaterials (const GameTimer& gt) {}
 
-void class_name::UpdateObjectCBs (const GameTimer& gt) {
+void TexColumnsApp::UpdateObjectCBs (const GameTimer& gt) {
 	auto currObjectCB = m_CurrFrameResource->ObjectCB.get ();
 	for (auto& e : m_AllRitems) {
 		if (e->NumFrameDirty > 0) {
@@ -599,7 +599,7 @@ void class_name::UpdateObjectCBs (const GameTimer& gt) {
 	}
 }
 
-void class_name::UpdateMainPassCB (const GameTimer& gt) {
+void TexColumnsApp::UpdateMainPassCB (const GameTimer& gt) {
 	XMMATRIX view = XMLoadFloat4x4 (&m_View);
 	XMMATRIX proj = XMLoadFloat4x4 (&m_Proj);
 
@@ -633,7 +633,7 @@ void class_name::UpdateMainPassCB (const GameTimer& gt) {
 	currPassCB->CopyData (0, m_MainPassCB);
 }
 
-void class_name::UpdateMaterialCBs (const GameTimer& gt) {
+void TexColumnsApp::UpdateMaterialCBs (const GameTimer& gt) {
 	auto currMaterialCB = m_CurrFrameResource->MaterialCB.get ();
 	for (auto& e : m_Materials) {
 		Material* mat = e.second.get ();
@@ -653,7 +653,7 @@ void class_name::UpdateMaterialCBs (const GameTimer& gt) {
 	}
 }
 
-void class_name::Draw (const GameTimer& gt) {
+void TexColumnsApp::Draw (const GameTimer& gt) {
 	auto cmdListAlloc = m_CurrFrameResource->CmdListAlloc;
 
 	ThrowIfFailed (cmdListAlloc->Reset ());
@@ -701,7 +701,7 @@ void class_name::Draw (const GameTimer& gt) {
 	m_CmdQueue->Signal (m_Fence.Get (), m_CurrentFence);
 }
 
-void class_name::DrawRenderItems (ID3D12GraphicsCommandList* cmdList, const std::vector<RenderItem*>& ritems) {
+void TexColumnsApp::DrawRenderItems (ID3D12GraphicsCommandList* cmdList, const std::vector<RenderItem*>& ritems) {
 	UINT objCBByteSize = D3DUtil::CalcConstantBufferByteSize (sizeof (ObjectConstants));
 	UINT matCBByteSize = D3DUtil::CalcConstantBufferByteSize (sizeof (MaterialConstants));
 
@@ -732,14 +732,14 @@ void class_name::DrawRenderItems (ID3D12GraphicsCommandList* cmdList, const std:
 	}
 }
 
-void class_name::OnMouseDown (WPARAM btnState, int x, int y) {
+void TexColumnsApp::OnMouseDown (WPARAM btnState, int x, int y) {
 	m_LastMousePos.x = x;
 	m_LastMousePos.y = y;
 
 	SetCapture (m_MainWnd);
 }
 
-void class_name::OnMouseMove (WPARAM btnState, int x, int y) {
+void TexColumnsApp::OnMouseMove (WPARAM btnState, int x, int y) {
 	if ((btnState & MK_LBUTTON) != 0) {
 		float dx = XMConvertToRadians (0.25f * static_cast<float> (m_LastMousePos.x - x));
 		float dy = XMConvertToRadians (0.25f * static_cast<float> (m_LastMousePos.y - y));
@@ -761,11 +761,11 @@ void class_name::OnMouseMove (WPARAM btnState, int x, int y) {
 	m_LastMousePos.y = y;
 }
 
-void class_name::OnMouseUp (WPARAM btnState, int x, int y) {
+void TexColumnsApp::OnMouseUp (WPARAM btnState, int x, int y) {
 	ReleaseCapture ();
 }
 
-std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> class_name::GetStaticSamplers () {
+std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> TexColumnsApp::GetStaticSamplers () {
 	// 應用程序一般只會用到這些采樣器中的一部分
 	// 所以就將它們全部提前定義好,並作為根簽名的一部分保留下來
 
@@ -828,7 +828,7 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE prevInstance,
 #endif
 
 	try {
-		class_name theApp (hInstance);
+		TexColumnsApp theApp (hInstance);
 
 		if (!theApp.Initialize ())
 			return 0;

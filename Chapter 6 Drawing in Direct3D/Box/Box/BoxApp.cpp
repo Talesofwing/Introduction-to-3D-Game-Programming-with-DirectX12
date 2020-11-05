@@ -254,7 +254,7 @@ void BoxApp::BuildBoxGeometry () {
 	m_BoxGeo->IndexFormat = DXGI_FORMAT_R16_UINT;
 	m_BoxGeo->IndexBufferByteSize = ibByteSize;
 
-	SubMeshGeometry submesh;
+	SubmeshGeometry submesh;
 	submesh.IndexCount = (UINT)indices.size ();
 	submesh.StartIndexLocation = 0;
 	submesh.BaseVertexLocation = 0;
