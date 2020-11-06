@@ -114,7 +114,7 @@ private:
 };
 
 TexColumnsApp::TexColumnsApp (HINSTANCE hInstance) : D3DApp (hInstance) {
-	m_MainWndCaption = L"Chapter - ";
+	m_MainWndCaption = L"Chapter 9 - TexColumns";
 }
 
 TexColumnsApp::~TexColumnsApp () {

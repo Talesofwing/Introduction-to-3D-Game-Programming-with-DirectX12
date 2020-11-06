@@ -130,7 +130,7 @@ private:
 };
 
 BlendDemoApp::BlendDemoApp (HINSTANCE hInstance) : D3DApp (hInstance) {
-	m_MainWndCaption = L"Chapter - ";
+	m_MainWndCaption = L"Chapter 10 - BlendDemo";
 }
 
 BlendDemoApp::~BlendDemoApp () {
