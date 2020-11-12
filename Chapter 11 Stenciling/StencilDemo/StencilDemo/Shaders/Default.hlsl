@@ -96,10 +96,15 @@ VertexOut VS (VertexIn vin) {
 }
 
 float4 PS (VertexOut pin) : SV_Target {
+    //
+    // Exercise 9
+    //
+    //return float4(0.05f, 0.05f, 0.05f, 1.0f);
+
     float4 diffuseAlbedo = gDiffuseMap.Sample (gsamAnisotropicWrap, pin.TexC) * gDiffuseAlbedo;
 
 #ifdef ALPHA_TEST
-    clip (diffuseAlbedo.a - 0.1f);
+    clip (diffuseAlbedo.r - 0.1f);
 #endif
 
     // 對法線插值可能導致其非規範化,因此需要再次對他進行規範化處理

@@ -35,11 +35,11 @@ struct PassConstants {
 };
 
 struct Vertex {
-    Vertex() = default;
-    Vertex(float x, float y, float z, float nx, float ny, float nz, float u, float v) :
-        Pos(x, y, z),
-        Normal(nx, ny, nz),
-        TexC(u, v) {}
+    Vertex () = default;
+    Vertex (float x, float y, float z, float nx, float ny, float nz, float u, float v) :
+        Pos (x, y, z),
+        Normal (nx, ny, nz),
+        TexC (u, v) {}
 
     DirectX::XMFLOAT3 Pos;
     DirectX::XMFLOAT3 Normal;
