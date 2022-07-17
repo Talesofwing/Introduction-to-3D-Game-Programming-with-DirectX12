@@ -26,7 +26,7 @@ private:
 };
 
 RenderingPipelineApp::RenderingPipelineApp (HINSTANCE hInstance) : D3DApp (hInstance) {
-	m_MainWndCaption = L"Chapter - ";
+	m_MainWndCaption = L"Chapter - 5, Exercise";
 }
 
 RenderingPipelineApp::~RenderingPipelineApp () {}

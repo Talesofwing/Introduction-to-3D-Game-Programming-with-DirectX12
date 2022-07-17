@@ -1,11 +1,9 @@
 ﻿#include <DirectXMath.h>
 #include <Windows.h>
-#include <DirectXPackedVector.h>
 #include <iostream>
 
 using namespace std;
 using namespace DirectX;
-using namespace DirectX::PackedVector;
 
 ostream& XM_CALLCONV operator<<(ostream& os, FXMVECTOR v) {
 	XMFLOAT3 dest;
