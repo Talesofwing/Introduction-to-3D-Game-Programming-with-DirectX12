@@ -1,4 +1,4 @@
-﻿#include <DirectXMath.h>
+#include <DirectXMath.h>
 #include <Windows.h>
 #include <iostream>
 
@@ -6,21 +6,21 @@ using namespace std;
 using namespace DirectX;
 
 ostream& XM_CALLCONV operator<<(ostream& os, FXMVECTOR v) {
-	XMFLOAT3 dest;
-	XMStoreFloat3 (&dest, v);
+	XMFLOAT4 dest;
+	XMStoreFloat4(&dest, v);
 
-	os << "(" << dest.x << ", " << dest.y << ", " << dest.z << ")";
+	os << "(" << dest.x << ", " << dest.y << ", " << dest.z << ", " << dest.w << ")";
 	return os;
 }
 
-void InitFunctions () {
-	cout.setf (ios_base::boolalpha);
+void InitFunctions() {
+	cout.setf(ios_base::boolalpha);
 
-	XMVECTOR p = XMVectorZero ();						// (0, 0, 0)
-	XMVECTOR q = XMVectorSplatOne ();					// (1, 1, 1)
-	XMVECTOR u = XMVectorSet (1.0f, 2.0f, 3.0f, 0.0f);
-	XMVECTOR v = XMVectorReplicate (-2.0f);				// (-2, -2, -2)
-	XMVECTOR w = XMVectorSplatZ (u);					// (3, 3, 3)
+	XMVECTOR p = XMVectorZero();						// (0, 0, 0)
+	XMVECTOR q = XMVectorSplatOne();					// (1, 1, 1)
+	XMVECTOR u = XMVectorSet(1.0f, 2.0f, 3.0f, 0.0f);
+	XMVECTOR v = XMVectorReplicate(-2.0f);				// (-2, -2, -2)
+	XMVECTOR w = XMVectorSplatZ(u);						// (3, 3, 3)
 
 	cout << "p = " << p << endl;
 	cout << "q = " << q << endl;
@@ -29,63 +29,71 @@ void InitFunctions () {
 	cout << "w = " << w << endl;
 }
 
-void TOL () {
-	cout.precision (8);
+void TOL() {
+	cout.precision(8);
 
-	XMVECTOR u = XMVectorSet (1.0f, 1.0f, 1.0f, 0.0f);
-	XMVECTOR n = XMVector3Normalize (u);
+	XMVECTOR u = XMVectorSet(1.0f, 1.0f, 1.0f, 0.0f);
+	XMVECTOR n = XMVector3Normalize(u);
 
 	cout << u << endl;
 
-	float LU = XMVectorGetX (XMVector3Length (n));
+	float LU = XMVectorGetX(XMVector3Length(n));
 
-	// Mathematically, the length should be 1.  Is it numerically?
-	// 會有誤差
+	// Mathematically, the length should be 1. Is it numerically?
+	// precision error issues.
 	cout << LU << endl;
-	if (LU == 1.0f)
+	if (LU == 1.0f) {
 		cout << "Length 1" << endl;
-	else
+	} else {
 		cout << "Length not 1" << endl;
+	}
 
-	// Raising 1 to any power should still be 1.  Is it?
-	float powLU = powf (LU, 1.0e6f);
+	// Raising 1 to any power should still be 1. Is it?
+	float powLU = powf(LU, 1.0e6f);
 	cout << "LU^(10^6) = " << powLU << endl;
 }
 
-void VectorOps () {
-	cout.setf (ios_base::boolalpha);
+void VectorOps() {
+	cout.setf(ios_base::boolalpha);
 
-	XMVECTOR p = XMVectorSet (2.0f, 2.0f, 1.0f, 0.0f);
-	XMVECTOR q = XMVectorSet (2.0f, -0.5f, 0.5f, 0.1f);
-	XMVECTOR u = XMVectorSet (1.0f, 2.0f, 4.0f, 8.0f);
-	XMVECTOR v = XMVectorSet (-2.0f, 1.0f, -3.0f, 2.5f);
-	XMVECTOR w = XMVectorSet (0.0f, XM_PIDIV4, XM_PIDIV2, XM_PI);
+	XMVECTOR p = XMVectorSet(2.0f, 2.0f, 1.0f, 0.0f);
+	XMVECTOR q = XMVectorSet(2.0f, -0.5f, 0.5f, 0.1f);
+	XMVECTOR u = XMVectorSet(1.0f, 2.0f, 4.0f, 8.0f);
+	XMVECTOR v = XMVectorSet(-2.0f, 1.0f, -3.0f, 2.5f);
+	XMVECTOR w = XMVectorSet(0.0f, XM_PIDIV4, XM_PIDIV2, XM_PI);
 
-	cout << "XMVectorAbs(v)                 = " << XMVectorAbs (v) << endl;		// 絕對值
-	cout << "XMVectorCos(w)                 = " << XMVectorCos (w) << endl;		// 對向量裏的每一個元素進行cos函數運算
-	cout << "XMVectorLog(u)                 = " << XMVectorLog (u) << endl;		// LOG計算
-	cout << "XMVectorExp(p)                 = " << XMVectorExp (p) << endl;		// 2次幂計算
+	cout << "p = " << p << endl;
+	cout << "q = " << q << endl;
+	cout << "u = " << u << endl;
+	cout << "v = " << v << endl;
+	cout << "w = " << w << endl << endl;
 
-	cout << "XMVectorPow(u, p)              = " << XMVectorPow (u, p) << endl;	// p次幂
-	cout << "XMVectorSqrt(u)                = " << XMVectorSqrt (u) << endl;	// 開二次根
+	cout << "XMVectorAbs(v)                 = " << XMVectorAbs(v) << endl;
+	cout << "XMVectorCos(w)                 = " << XMVectorCos(w) << endl;
+	cout << "XMVectorLog(u)                 = " << XMVectorLog(u) << endl;
+	cout << "XMVectorExp(p)                 = " << XMVectorExp(p) << endl;		// two raised to the power of the corresponding component of p
 
-	// 返回 (v[a], v[b], v[c], v[d]), 把vector中的元素看成數組由0開始
-	cout << "XMVectorSwizzle(u, 2, 2, 1, 3) = " << XMVectorSwizzle (u, 2, 2, 1, 3) << endl;
-	cout << "XMVectorSwizzle(u, 2, 1, 0, 3) = "	<< XMVectorSwizzle (u, 2, 1, 0, 3) << endl;
+	cout << "XMVectorPow(u, p)              = " << XMVectorPow(u, p) << endl;
+	cout << "XMVectorSqrt(u)                = " << XMVectorSqrt(u) << endl;
 
-	cout << "XMVectorMultiply(u, v)         = " << XMVectorMultiply (u, v) << endl;
-	cout << "XMVectorSaturate(q)            = " << XMVectorSaturate (q) << endl;	// 使每個元素都保持在0~1之間
-	cout << "XMVectorMin(p, v)              = " << XMVectorMin (p, v) << endl;
-	cout << "XMVectorMax(p, v)              = " << XMVectorMax (p, v) << endl;
+	// 
+	// return a vector with the specific components
+	cout << "XMVectorSwizzle(u, 2, 2, 1, 3) = " << XMVectorSwizzle(u, 2, 2, 1, 3) << endl;
+	cout << "XMVectorSwizzle(u, 2, 1, 0, 3) = " << XMVectorSwizzle(u, 2, 1, 0, 3) << endl;
+
+	cout << "XMVectorMultiply(u, v)         = " << XMVectorMultiply(u, v) << endl;
+	cout << "XMVectorSaturate(q)            = " << XMVectorSaturate(q) << endl;
+	cout << "XMVectorMin(p, v)              = " << XMVectorMin(p, v) << endl;
+	cout << "XMVectorMax(p, v)              = " << XMVectorMax(p, v) << endl;
 }
 
-void emmm () {
-	cout.setf (ios_base::boolalpha);
+void emmm() {
+	cout.setf(ios_base::boolalpha);
 
-	XMVECTOR n = XMVectorSet (1.0f, 0.0f, 0.0f, 0.0f);
-	XMVECTOR u = XMVectorSet (1.0f, 2.0f, 3.0f, 0.0f);
-	XMVECTOR v = XMVectorSet (-2.0f, 1.0f, -3.0f, 0.0f);
-	XMVECTOR w = XMVectorSet (0.707f, 0.707f, 0.0f, 0.0f);
+	XMVECTOR n = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+	XMVECTOR u = XMVectorSet(1.0f, 2.0f, 3.0f, 0.0f);
+	XMVECTOR v = XMVectorSet(-2.0f, 1.0f, -3.0f, 0.0f);
+	XMVECTOR w = XMVectorSet(0.707f, 0.707f, 0.0f, 0.0f);
 
 	// Vector addition: XMVECTOR operator + 
 	XMVECTOR a = u + v;
@@ -97,30 +105,30 @@ void emmm () {
 	XMVECTOR c = 10.0f * u;
 
 	// ||u||
-	XMVECTOR L = XMVector3Length (u);
+	XMVECTOR L = XMVector3Length(u);
 
 	// d = u / ||u||
-	XMVECTOR d = XMVector3Normalize (u);
+	XMVECTOR d = XMVector3Normalize(u);
 
 	// s = u dot v
-	XMVECTOR s = XMVector3Dot (u, v);
+	XMVECTOR s = XMVector3Dot(u, v);
 
 	// e = u x v
-	XMVECTOR e = XMVector3Cross (u, v);
+	XMVECTOR e = XMVector3Cross(u, v);
 
 	// Find proj_n(w) and perp_n(w)
 	XMVECTOR projW;
 	XMVECTOR perpW;
-	XMVector3ComponentsFromNormal (&projW, &perpW, w, n);
+	XMVector3ComponentsFromNormal(&projW, &perpW, w, n);
 
 	// Does projW + perpW == w?
-	bool equal = XMVector3Equal (projW + perpW, w) != 0;
-	bool notEqual = XMVector3NotEqual (projW + perpW, w) != 0;
+	bool equal = XMVector3Equal(projW + perpW, w) != 0;
+	bool notEqual = XMVector3NotEqual(projW + perpW, w) != 0;
 
 	// The angle between projW and perpW should be 90 degrees.
-	XMVECTOR angleVec = XMVector3AngleBetweenVectors (projW, perpW);
-	float angleRadians = XMVectorGetX (angleVec);
-	float angleDegrees = XMConvertToDegrees (angleRadians);
+	XMVECTOR angleVec = XMVector3AngleBetweenVectors(projW, perpW);
+	float angleRadians = XMVectorGetX(angleVec);
+	float angleDegrees = XMConvertToDegrees(angleRadians);
 
 	cout << "u                   = " << u << endl;
 	cout << "v                   = " << v << endl;
@@ -140,20 +148,20 @@ void emmm () {
 	cout << "angle               = " << angleDegrees << endl;
 }
 
-int main () {
+int main() {
 	// Check support for SSE2
-	if (!XMVerifyCPUSupport ()) {
+	if (!XMVerifyCPUSupport()) {
 		cout << "directx math not supported" << endl;
 		return 0;
 	}
 
-	// InitFunctions ();
+	// InitFunctions();
 
-	// TOL ();
-	
-	// VectorOps ();
+	// TOL();
 
-	emmm ();
+	VectorOps();
+
+	// emmm();
 
 	return 0;
 }
