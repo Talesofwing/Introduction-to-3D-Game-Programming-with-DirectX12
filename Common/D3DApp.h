@@ -14,53 +14,53 @@
 
 class D3DApp {
 protected:
-	D3DApp (HINSTANCE hInstance);
-	D3DApp (const D3DApp& rhs) = delete;
+	D3DApp(HINSTANCE hInstance);
+	D3DApp(const D3DApp& rhs) = delete;
 	D3DApp& operator = (const D3DApp& rhs) = delete;
-	virtual ~D3DApp ();
+	virtual ~D3DApp();
 
 public:
-	static D3DApp* GetApp ();
+	static D3DApp* GetApp();
 
-	HINSTANCE AppInstance () const;
-	HWND MainWnd () const;
-	float AspectRatio () const;
+	HINSTANCE AppInstance() const;
+	HWND MainWnd() const;
+	float AspectRatio() const;
 
-	bool Get4xMsaaState () const;
-	void Set4xMsaaState (bool value);
+	bool Get4xMsaaState() const;
+	void Set4xMsaaState(bool value);
 
-	int Run ();
+	int Run();
 
-	virtual bool Initialize ();
-	virtual LRESULT MsgProc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
-protected:
-	virtual void CreateRtvAndDsvDescriptorHeaps ();
-	virtual void OnResize ();
-	virtual void Update (const GameTimer& gt) = 0;
-	virtual void Draw (const GameTimer& gt) = 0;
-
-	virtual void OnMouseDown (WPARAM btnState, int x, int y) {}
-	virtual void OnMouseUp (WPARAM btnState, int x, int y) {}
-	virtual void OnMouseMove (WPARAM btnState, int x, int y) {}
+	virtual bool Initialize();
+	virtual LRESULT MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 protected:
-	bool InitMainWindow ();
-	bool InitDirect3D ();
-	void CreateCommandObjects ();
-	void CreateSwapChain ();
+	virtual void CreateRtvAndDsvDescriptorHeaps();
+	virtual void OnResize();
+	virtual void Update(const GameTimer& gt) = 0;
+	virtual void Draw(const GameTimer& gt) = 0;
 
-	void FlushCommandQueue ();
+	virtual void OnMouseDown(WPARAM btnState, int x, int y) {}
+	virtual void OnMouseUp(WPARAM btnState, int x, int y) {}
+	virtual void OnMouseMove(WPARAM btnState, int x, int y) {}
 
-	ID3D12Resource* CurrentBackBuffer () const;
-	D3D12_CPU_DESCRIPTOR_HANDLE CurrentBackBufferView () const;
-	D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilView () const;
+protected:
+	bool InitMainWindow();
+	bool InitDirect3D();
+	void CreateCommandObjects();
+	void CreateSwapChain();
 
-	void CalculateFrameStats ();
+	void FlushCommandQueue();
 
-	void LogAdapters ();
-	void LogAdapterOutputs (IDXGIAdapter* adapter);
-	void LogOutputDisplayModes (IDXGIOutput* output, DXGI_FORMAT format);
+	ID3D12Resource* CurrentBackBuffer() const;
+	D3D12_CPU_DESCRIPTOR_HANDLE CurrentBackBufferView() const;
+	D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilView() const;
+
+	void CalculateFrameStats();
+
+	void LogAdapters();
+	void LogAdapterOutputs(IDXGIAdapter* adapter);
+	void LogOutputDisplayModes(IDXGIOutput* output, DXGI_FORMAT format);
 
 protected:
 	static D3DApp* m_Instance;
@@ -70,8 +70,8 @@ protected:
 	bool m_AppPaused = false;			// is the application paused?
 	bool m_Minimized = false;			// is the application minimized?
 	bool m_Maximized = false;			// is the application maximized?
-	bool m_Resizing = false;				// are the resize bars being dragged?
-	bool m_FullscreenState =  false;		// fullscreen enabled
+	bool m_Resizing = false;			// are the resize bars being dragged?
+	bool m_FullscreenState = false;	    // fullscreen enabled
 
 	bool m_4xMsaaState = false;		// 4X MSAA enabled
 	UINT m_4xMsaaQuality = 0;		// quality level of 4X MSAA

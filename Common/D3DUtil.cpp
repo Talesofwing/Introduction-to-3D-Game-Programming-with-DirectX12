@@ -11,7 +11,7 @@ DxException::DxException (HRESULT hr, const std::wstring& functionName, const st
 	LineNumber (lineNumber) {
 }
 
-std::wstring DxException::ToString ()const {
+std::wstring DxException::ToString() const {
 	// Get the string description of the error code.
 	_com_error err (ErrorCode);
 	// Need to set the sulotion character set to unicode
@@ -109,6 +109,22 @@ ComPtr<ID3DBlob> D3DUtil::CompileShader (
 	ThrowIfFailed (hr);
 
 	return byteCode;
+}
+
+ComPtr<ID3DBlob> D3DUtil::LoadBinary (const std::wstring& filename) {
+	std::ifstream fin (filename, std::ios::binary);
+
+	fin.seekg (0, std::ios_base::end);
+	std::ifstream::pos_type size = (int)fin.tellg ();
+	fin.seekg (0, std::ios_base::beg);
+
+	ComPtr<ID3DBlob> blob;
+	ThrowIfFailed (D3DCreateBlob (size, blob.GetAddressOf ()));
+
+	fin.read ((char*)blob->GetBufferPointer (), size);
+	fin.close ();
+
+	return blob;
 }
 
 #pragma endregion

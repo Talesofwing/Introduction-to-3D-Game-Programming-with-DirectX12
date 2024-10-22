@@ -23,29 +23,32 @@ extern const int g_NumFrameResources;
 
 class D3DUtil {
 public:
-	static Microsoft::WRL::ComPtr<ID3D12Resource> CreateDefaultBuffer (
+	static Microsoft::WRL::ComPtr<ID3D12Resource> CreateDefaultBuffer(
 		ID3D12Device* device,
 		ID3D12GraphicsCommandList* cmdList,
 		const void* initData,
 		UINT64 byteSize,
 		Microsoft::WRL::ComPtr<ID3D12Resource>& uploadBuffer);
 
-	static UINT CalcConstantBufferByteSize (UINT byteSize) {
+	static UINT CalcConstantBufferByteSize(UINT byteSize)
+	{
 		return (byteSize + 255) & ~255;
 	}
 
-	static Microsoft::WRL::ComPtr<ID3DBlob> CompileShader (const std::wstring& filename,
-														   const D3D_SHADER_MACRO* defines,
-														   const std::string& entrypoint,
-														   const std::string& target);
+	static Microsoft::WRL::ComPtr<ID3DBlob> CompileShader(const std::wstring& filename,
+														  const D3D_SHADER_MACRO* defines,
+														  const std::string& entrypoint,
+														  const std::string& target);
+
+	static Microsoft::WRL::ComPtr<ID3DBlob> LoadBinary(const std::wstring& filename);
 };
 
 class DxException {
 public:
-	DxException () = default;
-	DxException (HRESULT hr, const std::wstring& functionName, const std::wstring& filename, int lineNumber);
+	DxException() = default;
+	DxException(HRESULT hr, const std::wstring& functionName, const std::wstring& filename, int lineNumber);
 
-	std::wstring ToString ()const;
+	std::wstring ToString() const;
 
 	HRESULT ErrorCode = S_OK;
 	std::wstring FunctionName;
@@ -54,7 +57,7 @@ public:
 };
 
 // 定義MeshGeometry中存儲的單個幾何體
-// 此結構體商用於將多個幾何體數據存於一個頂點緩沖區和一個索引緩沖區的情況
+// 此結構體適用於將多個幾何體數據存於一個頂點緩沖區和一個索引緩沖區的情況
 // 它提供了對存於頂點緩沖區和索引緩沖區中的單個幾何體進行繪制所需的數據和偏移量
 struct SubmeshGeometry {
 	UINT IndexCount = 0;
@@ -90,28 +93,30 @@ struct MeshGeometry {
 	// 若利用下列器來定子網格幾何體, 我們就能單獨地繪制出其中的子網格 (單個幾何體)
 	std::unordered_map<std::string, SubmeshGeometry> DrawArgs;
 
-	D3D12_VERTEX_BUFFER_VIEW VertexBufferView () const {
+	D3D12_VERTEX_BUFFER_VIEW VertexBufferView() const
+	{
 		D3D12_VERTEX_BUFFER_VIEW vbv;
-		vbv.BufferLocation = VertexBufferGPU->GetGPUVirtualAddress ();
+		vbv.BufferLocation = VertexBufferGPU->GetGPUVirtualAddress();
 		vbv.StrideInBytes = VertexByteStride;
 		vbv.SizeInBytes = VertexBufferByteSize;
 		return vbv;
 	}
 
-	D3D12_INDEX_BUFFER_VIEW IndexBufferView () const {
+	D3D12_INDEX_BUFFER_VIEW IndexBufferView() const
+	{
 		D3D12_INDEX_BUFFER_VIEW ibv;
-		ibv.BufferLocation = IndexBufferGPU->GetGPUVirtualAddress ();
+		ibv.BufferLocation = IndexBufferGPU->GetGPUVirtualAddress();
 		ibv.Format = IndexFormat;
 		ibv.SizeInBytes = IndexBufferByteSize;
 		return ibv;
 	}
 
 	// 待數據上傳至GPU後, 釋放內存
-	void DisposeUploaders () {
+	void DisposeUploaders()
+	{
 		VertexBufferUploader = nullptr;
 		IndexBufferUploader = nullptr;
 	}
-
 };
 
 struct MaterialConstants {
@@ -120,7 +125,7 @@ struct MaterialConstants {
 	float Roughness = 0.25f;
 
 	// Used in texture mapping.
-	DirectX::XMFLOAT4X4 MatTransform = MathHelper::Identity4x4 ();
+	DirectX::XMFLOAT4X4 MatTransform = MathHelper::Identity4x4();
 };
 
 struct Material {
@@ -142,7 +147,7 @@ struct Material {
 	DirectX::XMFLOAT4 DiffuseAlbedo = {1.0f, 1.0f, 1.0f, 1.0f};		// 漫反射反照率
 	DirectX::XMFLOAT3 FresnelR0 = {0.01f, 0.01f, 0.01f};			// 材質屬性 (折射率)
 	float Roughness = 0.25f;										// 粗糙度 [0, 1] 0為理想光滑表面
-	DirectX::XMFLOAT4X4 MatTransform = MathHelper::Identity4x4 ();  // 
+	DirectX::XMFLOAT4X4 MatTransform = MathHelper::Identity4x4();
 };
 
 struct Light {
@@ -166,15 +171,16 @@ struct Texture {
 	Microsoft::WRL::ComPtr<ID3D12Resource> UploadHeap = nullptr;
 };
 
-inline std::wstring AnsiToWString (const std::string& str) {
+inline std::wstring AnsiToWString(const std::string& str)
+{
 	WCHAR buffer[512];
-	MultiByteToWideChar (CP_ACP, 0, str.c_str (), -1, buffer, 512);
-	return std::wstring (buffer);
+	MultiByteToWideChar(CP_ACP, 0, str.c_str(), -1, buffer, 512);
+	return std::wstring(buffer);
 }
 
 #ifndef ThrowIfFailed
 #define ThrowIfFailed(x) {									\
-	HRESULT hr__ = (x);										\
+	HRESULT hr__ = x;										\
 	std::wstring wfn = AnsiToWString (__FILE__);			\
 	if (FAILED (hr__)) {									\
 		throw DxException (hr__, L#x, wfn, __LINE__);		\
@@ -183,5 +189,5 @@ inline std::wstring AnsiToWString (const std::string& str) {
 #endif
 
 #ifndef ReleaseCom
-#define ReleaseCom(x) { if(x){ x->Release(); x = 0; } }
+#define ReleaseCom(x) { if (x) { x->Release(); x = nullptr; } }
 #endif

@@ -50,7 +50,7 @@ float** MatrixSet (const float* values, int degree) {
 }
 
 /// <summary>
-/// 計算轉置矩陣
+/// ?算轉置矩?
 /// </summary>
 float** CalculateTranspose (float** matrix, int degree) {
 	float** result = MatrixSet (degree);
@@ -63,10 +63,13 @@ float** CalculateTranspose (float** matrix, int degree) {
 }
 
 /// <summary>
-/// 計算余子陣, 從(rowIndex, colIndex)展開
+/// ?算余子?, 從(rowIndex, colIndex)展開
 /// </summary>
 float** CalculateMinor (float** pMatrix, int degree, int rowIndex, int colIndex) {
-	float** newMatrix;
+	float** newMatrix = new float*[degree];
+	for (int i = 0; i < degree; ++i) {
+		newMatrix[i] = new float[degree];
+	}
 
 	for (int row = 0; row < degree - 1; ++row) {
 		for (int col = 0; col < degree - 1; ++col) {
@@ -132,7 +135,7 @@ int* GetMaxZeroCountCol (float** matrix, int degree) {
 }
 
 /// <summary>
-/// 計算行列式
+/// ?算行列式
 /// </summary>
 float CalculateDeterminant (float** matrix, int degree) {
 	// [a b]
@@ -146,8 +149,8 @@ float CalculateDeterminant (float** matrix, int degree) {
 	}
 
 	// 1. 獲得最多0的行或列
-	// 2. 按該行/列展開
-	// 3. 計算行列式
+	// 2. 按?行/列展開
+	// 3. ?算行列式
 	int* rowInf = GetMaxZeroCountRow (matrix, degree);
 	cout << "RowIndex: " << rowInf[0] << ", ZeroCount: " << rowInf[1] << endl;
 	int* colInf = GetMaxZeroCountCol (matrix, degree);
@@ -202,14 +205,14 @@ float CalculateDeterminant (float** matrix, int degree) {
 }
 
 /// <summary>
-/// 計算伴隨矩陣
+/// ?算伴隨矩?
 /// </summary>
 float** CalculateAdjoint (float** matrix, int degree) {
 	float** result = MatrixSet (degree);
 	for (int row = 0; row < degree; ++row) {
 		for (int col = 0; col < degree; ++col) {
-			// 1. 得到余子陣
-			// 2. 計算余子陣的行列式
+			// 1. 得到余子?
+			// 2. ?算余子?的行列式
 			float sign = -1;
 			if ((row + col) % 2 == 0)
 				sign = 1;
@@ -223,13 +226,13 @@ float** CalculateAdjoint (float** matrix, int degree) {
 }
 
 /// <summary>
-/// 計算逆矩陣
+/// ?算逆矩?
 /// </summary>
 float** CalculateInverse (float** matrix, int degree) {
 	float det = CalculateDeterminant (matrix, degree);
 	cout << "Final Determinant: " << det << endl;
 	if (abs(det) - EPSILON <= 0) {
-		cout << "行列式為0，不存在逆矩陣。" << endl;
+		cout << "行列式為0，不存在逆矩?。" << endl;
 		return nullptr;
 	}
 

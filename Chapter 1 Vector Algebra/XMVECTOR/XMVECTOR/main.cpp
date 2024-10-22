@@ -13,15 +13,14 @@ ostream& XM_CALLCONV operator<<(ostream& os, FXMVECTOR v) {
 	return os;
 }
 
-void  InitFunctions () {
-	// 設置格式標志來控制輸出的形式
-	cout.setf (ios_base::boolalpha);	// 可使用"true" / "false"進行輸入/輸出的boolean
+void InitFunctions () {
+	cout.setf (ios_base::boolalpha);
 
-	XMVECTOR p = XMVectorZero ();		// (0, 0, 0)
-	XMVECTOR q = XMVectorSplatOne ();	// (1, 1, 1)
+	XMVECTOR p = XMVectorZero ();						// (0, 0, 0)
+	XMVECTOR q = XMVectorSplatOne ();					// (1, 1, 1)
 	XMVECTOR u = XMVectorSet (1.0f, 2.0f, 3.0f, 0.0f);
-	XMVECTOR v = XMVectorReplicate (-2.0f);	// (-2, -2, -2)
-	XMVECTOR w = XMVectorSplatZ (u);	// (3, 3, 3)
+	XMVECTOR v = XMVectorReplicate (-2.0f);				// (-2, -2, -2)
+	XMVECTOR w = XMVectorSplatZ (u);					// (3, 3, 3)
 
 	cout << "p = " << p << endl;
 	cout << "q = " << q << endl;
@@ -31,9 +30,6 @@ void  InitFunctions () {
 }
 
 void TOL () {
-	// 格式控制函數
-	// precision () : 返回當前的浮點數的精度值
-	// cout.precision (val) : 輸出的時候設定輸出值以新浮點數精度值顯示,即小數點後保留val位
 	cout.precision (8);
 
 	XMVECTOR u = XMVectorSet (1.0f, 1.0f, 1.0f, 0.0f);
@@ -57,8 +53,7 @@ void TOL () {
 }
 
 void VectorOps () {
-	// 設置格式標志來控制輸出的形式
-	cout.setf (ios_base::boolalpha);	// 可使用"true" / "false"進行輸入/輸出的boolean
+	cout.setf (ios_base::boolalpha);
 
 	XMVECTOR p = XMVectorSet (2.0f, 2.0f, 1.0f, 0.0f);
 	XMVECTOR q = XMVectorSet (2.0f, -0.5f, 0.5f, 0.1f);
@@ -75,10 +70,8 @@ void VectorOps () {
 	cout << "XMVectorSqrt(u)                = " << XMVectorSqrt (u) << endl;	// 開二次根
 
 	// 返回 (v[a], v[b], v[c], v[d]), 把vector中的元素看成數組由0開始
-	cout << "XMVectorSwizzle(u, 2, 2, 1, 3) = "
-		<< XMVectorSwizzle (u, 2, 2, 1, 3) << endl;
-	cout << "XMVectorSwizzle(u, 2, 1, 0, 3) = "
-		<< XMVectorSwizzle (u, 2, 1, 0, 3) << endl;
+	cout << "XMVectorSwizzle(u, 2, 2, 1, 3) = " << XMVectorSwizzle (u, 2, 2, 1, 3) << endl;
+	cout << "XMVectorSwizzle(u, 2, 1, 0, 3) = "	<< XMVectorSwizzle (u, 2, 1, 0, 3) << endl;
 
 	cout << "XMVectorMultiply(u, v)         = " << XMVectorMultiply (u, v) << endl;
 	cout << "XMVectorSaturate(q)            = " << XMVectorSaturate (q) << endl;	// 使每個元素都保持在0~1之間
