@@ -5,5 +5,5 @@
 
 ### Environment
 
-- [VS 2019](https://visualstudio.microsoft.com/zh-hant/vs/)
+- Visual Studio 2022
 - DirectX 12
