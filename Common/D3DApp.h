@@ -73,8 +73,12 @@ protected:
 	bool _resizing = false;				// are the resize bars being dragged?
 	bool _fullscreenState = false;	    // fullscreen enabled
 
-	bool _4xMsaaState = false;			// 4X MSAA enabled
-	UINT _4xMsaaQuality = 0;			// quality level of 4X MSAA
+	bool _4xMsaaState = false;										// 4X MSAA enabled
+	UINT _4xMsaaQuality = 0;										// quality level of 4X MSAA
+	Microsoft::WRL::ComPtr<ID3D12Resource> _msaaRenderTargetBuffer;	// MSAA render target
+	Microsoft::WRL::ComPtr<ID3D12Resource> _msaaDepthStencilBuffer;	// MSAA depth stencil
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> _msaaRtvHeap;		// MSAA render target heap
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> _msaaDsvHeap;		// MSAA depth stencil heap
 
 	GameTimer _timer;
 

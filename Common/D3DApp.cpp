@@ -320,16 +320,16 @@ void D3DApp::CreateCommandObjects() {
 
 	ThrowIfFailed(_device->CreateCommandAllocator(
 		D3D12_COMMAND_LIST_TYPE_DIRECT,
-		IID_PPV_ARGS(_cmdAllocator.GetAddressOf()))
-	);
+		IID_PPV_ARGS(_cmdAllocator.GetAddressOf())
+	));
 
 	ThrowIfFailed(_device->CreateCommandList(
 		0,
 		D3D12_COMMAND_LIST_TYPE_DIRECT,
 		_cmdAllocator.Get(),		// Associated command allocator
 		nullptr,					// Initial PipelineStateObject
-		IID_PPV_ARGS(_cmdList.GetAddressOf()))
-	);
+		IID_PPV_ARGS(_cmdList.GetAddressOf())
+	));
 
 	// Start off in a closed state. This is because the first time we refer
 	// to the command list we will Reset it, and it needs to be closed before
@@ -349,8 +349,10 @@ void D3DApp::CreateSwapChain() {
 	sd.BufferDesc.Format = _backBufferFormat;
 	sd.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;		// Progressive Scan vs Interlaced Scan
 	sd.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;						// How the image is stretched relative to the screen.
-	sd.SampleDesc.Count = _4xMsaaState ? 4 : 1;
-	sd.SampleDesc.Quality = _4xMsaaState ? (_4xMsaaQuality - 1) : 0;
+	//sd.SampleDesc.Count = _4xMsaaState ? 4 : 1;
+	//sd.SampleDesc.Quality = _4xMsaaState ? (_4xMsaaQuality - 1) : 0;
+	sd.SampleDesc.Count = 1;
+	sd.SampleDesc.Quality = 0;
 	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	sd.BufferCount = _swapChainBufferCount;
 	sd.OutputWindow = _mainWnd;
@@ -362,8 +364,8 @@ void D3DApp::CreateSwapChain() {
 	ThrowIfFailed(_dxgiFactory->CreateSwapChain(
 		_cmdQueue.Get(),
 		&sd,
-		_swapChain.GetAddressOf())
-	);
+		_swapChain.GetAddressOf()
+	));
 }
 
 void D3DApp::CreateRtvAndDsvDescriptorHeaps() {
@@ -372,18 +374,28 @@ void D3DApp::CreateRtvAndDsvDescriptorHeaps() {
 	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 	rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	rtvHeapDesc.NodeMask = 0;
-	ThrowIfFailed(_device->CreateDescriptorHeap(
-		&rtvHeapDesc, IID_PPV_ARGS(_rtvHeap.GetAddressOf()))
-	);
+	ThrowIfFailed(_device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(_rtvHeap.GetAddressOf())));
 
 	D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc;
 	dsvHeapDesc.NumDescriptors = 1;
 	dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
 	dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	dsvHeapDesc.NodeMask = 0;
-	ThrowIfFailed(_device->CreateDescriptorHeap(
-		&dsvHeapDesc, IID_PPV_ARGS(_dsvHeap.GetAddressOf()))
-	);
+	ThrowIfFailed(_device->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(_dsvHeap.GetAddressOf())));
+
+	D3D12_DESCRIPTOR_HEAP_DESC msaaRtvHeapDesc;
+	msaaRtvHeapDesc.NumDescriptors = 1;
+	msaaRtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+	msaaRtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	msaaRtvHeapDesc.NodeMask = 0;
+	ThrowIfFailed(_device->CreateDescriptorHeap(&msaaRtvHeapDesc, IID_PPV_ARGS(_msaaRtvHeap.GetAddressOf())));
+
+	D3D12_DESCRIPTOR_HEAP_DESC msaaDsvHeapDesc;
+	msaaDsvHeapDesc.NumDescriptors = 1;
+	msaaDsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+	msaaDsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	msaaDsvHeapDesc.NodeMask = 0;
+	ThrowIfFailed(_device->CreateDescriptorHeap(&msaaDsvHeapDesc, IID_PPV_ARGS(_msaaDsvHeap.GetAddressOf())));
 }
 
 void D3DApp::OnResize() {
@@ -408,8 +420,7 @@ void D3DApp::OnResize() {
 		_clientWidth, _clientHeight,
 		_backBufferFormat,
 		DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH
-	)
-	);
+	));
 
 	_currentBackBuffer = 0;
 
@@ -431,8 +442,8 @@ void D3DApp::OnResize() {
 	depthStencilDesc.DepthOrArraySize = 1;
 	depthStencilDesc.MipLevels = 1;
 	depthStencilDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
-	depthStencilDesc.SampleDesc.Count = _4xMsaaState ? 4 : 1;
-	depthStencilDesc.SampleDesc.Quality = _4xMsaaState ? (_4xMsaaQuality - 1) : 0;
+	depthStencilDesc.SampleDesc.Count = 1;
+	depthStencilDesc.SampleDesc.Quality = 0;
 	depthStencilDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	depthStencilDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
@@ -452,7 +463,7 @@ void D3DApp::OnResize() {
 		&dsvHeapProperties,
 		D3D12_HEAP_FLAG_NONE,
 		&depthStencilDesc,
-		D3D12_RESOURCE_STATE_COMMON,
+		D3D12_RESOURCE_STATE_DEPTH_WRITE,
 		&optClear,
 		IID_PPV_ARGS(_depthStencilBuffer.GetAddressOf())
 	));
@@ -464,19 +475,69 @@ void D3DApp::OnResize() {
 	dsvDesc.Texture2D.MipSlice = 0;
 	_device->CreateDepthStencilView(_depthStencilBuffer.Get(), &dsvDesc, DepthStencilView());
 
-	// Transition the resource from its initial state to be used as a depth buffer.
-	D3D12_RESOURCE_BARRIER resourceBarrier = {};
-	resourceBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-	resourceBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	resourceBarrier.Transition.pResource = _depthStencilBuffer.Get();
-	resourceBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COMMON;
-	resourceBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+	//
+	// MSAA Resources
+	//
 
-	_cmdList->ResourceBarrier(
+	_msaaRenderTargetBuffer.Reset();
+	_msaaDepthStencilBuffer.Reset();
+
+	D3D12_RESOURCE_DESC msaaRtvResourceDesc = CD3DX12_RESOURCE_DESC::Tex2D(
+		_backBufferFormat,
+		_clientWidth,
+		_clientHeight,
 		1,
-		//&CD3DX12_RESOURCE_BARRIER::Transition(_depthStencilBuffer.Get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE)
-		&resourceBarrier
+		1,
+		4
 	);
+	msaaRtvResourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+
+	D3D12_CLEAR_VALUE msaaRenderTargetClearValue = {};
+	msaaRenderTargetClearValue.Format = _backBufferFormat;
+	memcpy(msaaRenderTargetClearValue.Color, Colors::LightSteelBlue, sizeof(float) * 4);
+
+	ThrowIfFailed(_device->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+		D3D12_HEAP_FLAG_NONE,
+		&msaaRtvResourceDesc,
+		D3D12_RESOURCE_STATE_RESOLVE_SOURCE,
+		&msaaRenderTargetClearValue,
+		IID_PPV_ARGS(_msaaRenderTargetBuffer.GetAddressOf())
+	));
+
+	D3D12_RENDER_TARGET_VIEW_DESC msaaRtvDesc = {};
+	msaaRtvDesc.Format = _backBufferFormat;
+	msaaRtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DMS;
+	_device->CreateRenderTargetView(_msaaRenderTargetBuffer.Get(), &msaaRtvDesc, _msaaRtvHeap->GetCPUDescriptorHandleForHeapStart());
+
+	D3D12_RESOURCE_DESC msaaDsvResourceDesc = CD3DX12_RESOURCE_DESC::Tex2D(
+		_depthStencilFormat,
+		_clientWidth,
+		_clientHeight,
+		1,
+		1,
+		4
+	);
+	msaaDsvResourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+
+	D3D12_CLEAR_VALUE msaaDepthStencilClearValue = {};
+	msaaDepthStencilClearValue.Format = _depthStencilFormat;
+	msaaDepthStencilClearValue.DepthStencil.Depth = 1.0f;
+	msaaDepthStencilClearValue.DepthStencil.Stencil = 0;
+
+	ThrowIfFailed(_device->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+		D3D12_HEAP_FLAG_NONE,
+		&msaaDsvResourceDesc,
+		D3D12_RESOURCE_STATE_DEPTH_WRITE,
+		&msaaDepthStencilClearValue,
+		IID_PPV_ARGS(_msaaDepthStencilBuffer.GetAddressOf())
+	));
+
+	D3D12_DEPTH_STENCIL_VIEW_DESC msaaDsvDesc = {};
+	msaaDsvDesc.Format = _depthStencilFormat;
+	msaaDsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DMS;
+	_device->CreateDepthStencilView(_msaaDepthStencilBuffer.Get(), &msaaDsvDesc, _msaaDsvHeap->GetCPUDescriptorHandleForHeapStart());
 
 	// Execute the resize commands.
 	ThrowIfFailed(_cmdList->Close());
@@ -517,12 +578,11 @@ ID3D12Resource* D3DApp::CurrentBackBuffer() const {
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE D3DApp::CurrentBackBufferView() const {
-/*
-	D3D12_CPU_DESCRIPTOR_HANDLE rtvH = m_RTVHeap->GetCPUDescriptorHandleForHeapStart ();
-	rtvH.ptr += m_CurrentBackBuffer * m_RTVDescriptorSize;
-	return rtvH;
-*/
-
+	/*
+		D3D12_CPU_DESCRIPTOR_HANDLE rtvH = m_RTVHeap->GetCPUDescriptorHandleForHeapStart ();
+		rtvH.ptr += m_CurrentBackBuffer * m_RTVDescriptorSize;
+		return rtvH;
+	*/
 	return CD3DX12_CPU_DESCRIPTOR_HANDLE(
 		_rtvHeap->GetCPUDescriptorHandleForHeapStart(),
 		_currentBackBuffer,
@@ -535,10 +595,9 @@ D3D12_CPU_DESCRIPTOR_HANDLE D3DApp::DepthStencilView() const {
 }
 
 void D3DApp::CalculateFrameStats() {
-   // Code computes the average frames per second, and also the
-   // average time it takes to render one frame. These stats
-   // are appended to the window caption bar.
-
+	// Code computes the average frames per second, and also the
+	// average time it takes to render one frame. These stats
+	// are appended to the window caption bar.
 	static int frameCnt = 0;
 	static float timeElapsed = 0.0f;
 
@@ -584,8 +643,8 @@ void D3DApp::Set4xMsaaState(bool value) {
 		_4xMsaaState = value;
 
 		// Recreate the swapchain and buffers with new multisample settings
-		CreateSwapChain();
-		OnResize();
+		// CreateSwapChain();
+		// OnResize();
 	}
 }
 
