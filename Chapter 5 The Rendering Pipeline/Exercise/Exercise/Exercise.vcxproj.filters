@@ -15,28 +15,8 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\Common\D3DUtil.cpp">
-      <Filter>來源檔案</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Common\D3DApp.cpp">
-      <Filter>來源檔案</Filter>
-    </ClCompile>
     <ClCompile Include="RenderingPipelineApp.cpp">
       <Filter>來源檔案</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Common\GameTimer.cpp">
-      <Filter>來源檔案</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\..\Common\D3DApp.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Common\D3DUtil.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Common\GameTimer.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
