@@ -611,6 +611,7 @@ void D3DApp::CalculateFrameStats() {
 		wstring mspfStr = to_wstring(mspf);
 
 		wstring windowText = _mainWndCaption +
+			(_4xMsaaState ? L"    4X MSAA " : L"") +
 			L"    fps: " + fpsStr +
 			L"   mspf: " + mspfStr;
 
