@@ -1,4 +1,4 @@
-#include "D3DUtil.h"
+#include "D3DUtil.h"	
 
 #include <comdef.h>
 
@@ -69,20 +69,19 @@ ComPtr<ID3D12Resource> D3DUtil::CreateDefaultBuffer(
 	cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(defaultBuffer.Get(),
 							 D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON));
 
-					 // Note: uploadBuffer has to be kept alive after the above function calls because
-					 // the command list has not been executed yet that performs the actual copy.
-					 // The caller can Release the uploadBuffer after it knows the copy has been executed.
+	// Note: uploadBuffer has to be kept alive after the above function calls because
+	// the command list has not been executed yet that performs the actual copy.
+	// The caller can Release the uploadBuffer after it knows the copy has been executed.
 
 	return defaultBuffer;
 }
 
-ComPtr<ID3DBlob> D3DUtil::CompileShader(
-	const std::wstring& filename,
-	const D3D_SHADER_MACRO* defines,
-	const std::string& entrypoint,
-	const std::string& target) {
-
+ComPtr<ID3DBlob> D3DUtil::CompileShader(const std::wstring& filename,
+										const D3D_SHADER_MACRO* defines,
+										const std::string& entrypoint,
+										const std::string& target) {
 	UINT compileFlags = 0;
+
 #if defined(DEBUG) || defined (_DEBUG)
 	compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
@@ -103,8 +102,9 @@ ComPtr<ID3DBlob> D3DUtil::CompileShader(
 		&errors
 	);
 
-	if (errors != nullptr)
+	if (errors != nullptr) {
 		OutputDebugStringA((char*)errors->GetBufferPointer());
+	}
 
 	ThrowIfFailed(hr);
 
