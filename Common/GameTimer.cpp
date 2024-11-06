@@ -4,15 +4,13 @@
 
 GameTimer::GameTimer()
 	: m_SecondsPerCount(0.0), m_DeltaTime(-1.0), m_BaseTime(0),
-	m_PausedTime(0), m_StopTime(0), m_PrevTime(0), m_CurrTime(0), m_Stopped(false)
-{
+	m_PausedTime(0), m_StopTime(0), m_PrevTime(0), m_CurrTime(0), m_Stopped(false) {
 	int64_t countsPerSec;
 	QueryPerformanceFrequency((LARGE_INTEGER*)&countsPerSec);
 	m_SecondsPerCount = 1.0 / (double)countsPerSec;
 }
 
-float GameTimer::TotalTime() const
-{
+float GameTimer::TotalTime() const {
 	if (m_Stopped) {
 		return (float)(((m_StopTime - m_PausedTime) - m_BaseTime) * m_SecondsPerCount);
 	} else {
@@ -20,13 +18,11 @@ float GameTimer::TotalTime() const
 	}
 }
 
-float GameTimer::DeltaTime() const
-{
+float GameTimer::DeltaTime() const {
 	return (float)m_DeltaTime;
 }
 
-void GameTimer::Reset()
-{
+void GameTimer::Reset() {
 	int64_t currTime;
 	QueryPerformanceCounter((LARGE_INTEGER*)&currTime);
 
@@ -36,8 +32,7 @@ void GameTimer::Reset()
 	m_Stopped = false;
 }
 
-void GameTimer::Start()
-{
+void GameTimer::Start() {
 	int64_t startTime;
 	QueryPerformanceCounter((LARGE_INTEGER*)&startTime);
 
@@ -50,8 +45,7 @@ void GameTimer::Start()
 	}
 }
 
-void GameTimer::Stop()
-{
+void GameTimer::Stop() {
 	if (!m_Stopped) {
 		int64_t currTime;
 		QueryPerformanceCounter((LARGE_INTEGER*)&currTime);
@@ -61,8 +55,7 @@ void GameTimer::Stop()
 	}
 }
 
-void GameTimer::Tick()
-{
+void GameTimer::Tick() {
 	if (m_Stopped) {
 		m_DeltaTime = 0.0;
 		return;
