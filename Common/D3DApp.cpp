@@ -349,8 +349,6 @@ void D3DApp::CreateSwapChain() {
 	sd.BufferDesc.Format = _backBufferFormat;
 	sd.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;		// Progressive Scan vs Interlaced Scan
 	sd.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;						// How the image is stretched relative to the screen.
-	//sd.SampleDesc.Count = _4xMsaaState ? 4 : 1;
-	//sd.SampleDesc.Quality = _4xMsaaState ? (_4xMsaaQuality - 1) : 0;
 	sd.SampleDesc.Count = 1;
 	sd.SampleDesc.Quality = 0;
 	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
@@ -424,12 +422,10 @@ void D3DApp::OnResize() {
 
 	_currentBackBuffer = 0;
 
-	//CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle(_rtvHeap->GetCPUDescriptorHandleForHeapStart());
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle(_rtvHeap->GetCPUDescriptorHandleForHeapStart());
 	for (UINT i = 0; i < _swapChainBufferCount; i++) {
 		ThrowIfFailed(_swapChain->GetBuffer(i, IID_PPV_ARGS(&_swapChainBuffer[i])));
 		_device->CreateRenderTargetView(_swapChainBuffer[i].Get(), nullptr, rtvHeapHandle);
-		//rtvHeapHandle.Offset(1, _rtvDescriptorSize);
 		rtvHeapHandle.ptr += _rtvDescriptorSize;
 	}
 
