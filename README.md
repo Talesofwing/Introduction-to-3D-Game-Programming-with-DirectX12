@@ -7,3 +7,7 @@
 
 - Visual Studio 2022
 - DirectX 12
+
+### Memos
+
+The Exercise in Chapter 6 does not include MSAA code, as implementing MSAA would make the code overly complicated.
