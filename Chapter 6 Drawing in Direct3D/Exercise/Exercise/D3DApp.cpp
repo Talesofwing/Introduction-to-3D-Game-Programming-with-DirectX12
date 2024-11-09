@@ -6,51 +6,51 @@ using Microsoft::WRL::ComPtr;
 using namespace std;
 using namespace DirectX;
 
-LRESULT CALLBACK MainWndProc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-	return D3DApp::GetApp ()->MsgProc (hwnd, msg, wParam, lParam);
+LRESULT CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	return D3DApp::GetApp()->MsgProc(hwnd, msg, wParam, lParam);
 }
 
-LRESULT D3DApp::MsgProc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+LRESULT D3DApp::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	switch (msg) {
 		// WM_ACTIVATE is sent when the window is activated or deactivated.
 		// We pause the game when the window is deactivated and unpause it
 		// when it becomes active.
 		case WM_ACTIVATE:
-			if (LOWORD (wParam) == WA_INACTIVE) {
-				m_AppPaused = true;
-				m_Timer.Stop ();
+			if (LOWORD(wParam) == WA_INACTIVE) {
+				_appPaused = true;
+				_timer.Stop();
 			} else {
-				m_AppPaused = false;
-				m_Timer.Start ();
+				_appPaused = false;
+				_timer.Start();
 			}
 			break;
 		// WM_SIZE is sent when the user resizes the window.
 		case WM_SIZE:
 			// Save the new client area dimensions.
-			m_ClientWidth = LOWORD (lParam);
-			m_ClientHeight = HIWORD (lParam);
-			if (m_Device) {
+			_clientWidth = LOWORD(lParam);
+			_clientHeight = HIWORD(lParam);
+			if (_device) {
 				if (wParam == SIZE_MINIMIZED) {
-					m_AppPaused = true;
-					m_Minimized = true;
-					m_Maximized = false;
+					_appPaused = true;
+					_minimized = true;
+					_maximized = false;
 				} else if (wParam == SIZE_MAXIMIZED) {
-					m_AppPaused = false;
-					m_Minimized = false;
-					m_Maximized = true;
-					OnResize ();
+					_appPaused = false;
+					_minimized = false;
+					_maximized = true;
+					OnResize();
 				} else if (wParam == SIZE_RESTORED) {
 					// Restoring from minimized state?
-					if (m_Minimized) {
-						m_AppPaused = false;
-						m_Minimized = false;
-						OnResize ();
+					if (_minimized) {
+						_appPaused = false;
+						_minimized = false;
+						OnResize();
 					// Restoring from maximized state?
-					} else if (m_Maximized) {
-						m_AppPaused = false;
-						m_Maximized = false;
-						OnResize ();
-					} else if (m_Resizing) {
+					} else if (_maximized) {
+						_appPaused = false;
+						_maximized = false;
+						OnResize();
+					} else if (_resizing) {
 						// If user is dragging the resize bars, we do not resize 
 						// the buffers here because as the user continuously 
 						// drags the resize bars, a stream of WM_SIZE messages are
@@ -60,34 +60,34 @@ LRESULT D3DApp::MsgProc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 						// done resizing the window and releases the resize bars, which 
 						// sends a WM_EXITSIZEMOVE message.
 					} else {		// API call such as SetWindowPos or m_SwapChain->SetFullscreenState.
-						OnResize ();
+						OnResize();
 					}
 				}
 			}
 			break;
 		// WM_ENTERSIZEMOVE is sent when the user grabs the resize bars.
 		case WM_ENTERSIZEMOVE:
-			m_AppPaused = true;
-			m_Resizing = true;
-			m_Timer.Stop ();
+			_appPaused = true;
+			_resizing = true;
+			_timer.Stop();
 			break;
 		// WM_EXITSIZEMOVE is sent when the user releases the resize bars.
 		// Here we reset everything based on the new window dimensions.
 		case WM_EXITSIZEMOVE:
-			m_AppPaused = false;
-			m_Resizing = false;
-			m_Timer.Start ();
-			OnResize ();
+			_appPaused = false;
+			_resizing = false;
+			_timer.Start();
+			OnResize();
 			break;
 		// WM_DESTROY is sent when the window is being destroyed.
 		case WM_DESTROY:
-			PostQuitMessage (0);
+			PostQuitMessage(0);
 			break;
 		// The WM_MENUCHAR message is sent when a menu is active and the user presses
 		// a key that does not correspond to any mnemonic or accelerator key.
 		case WM_MENUCHAR:
 			// Don't beep when we alt-enter
-			return MAKELRESULT (0, MNC_CLOSE);
+			return MAKELRESULT(0, MNC_CLOSE);
 		// Catch this message so to prevent the window from becoming too small.
 		case WM_GETMINMAXINFO:
 			// 控制窗口大小的範圍以及最大化時出現的位置
@@ -98,106 +98,104 @@ LRESULT D3DApp::MsgProc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		case WM_LBUTTONDOWN:
 		case WM_MBUTTONDOWN:
 		case WM_RBUTTONDOWN:
-			OnMouseDown (wParam, GET_X_LPARAM (lParam), GET_Y_LPARAM (lParam));
+			OnMouseDown(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 			break;
 		case WM_LBUTTONUP:
 		case WM_MBUTTONUP:
 		case WM_RBUTTONUP:
-			OnMouseUp (wParam, GET_X_LPARAM (lParam), GET_Y_LPARAM (lParam));
+			OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 			break;
 		case WM_MOUSEMOVE:
-			OnMouseMove (wParam, GET_X_LPARAM (lParam), GET_Y_LPARAM (lParam));
+			OnMouseMove(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 			break;
 		case WM_KEYUP:
 			if (wParam == VK_ESCAPE) {
-				PostQuitMessage (0);
+				PostQuitMessage(0);
 			} else if ((int)wParam == VK_F2) {
-				Set4xMsaaState (!m_4xMsaaState);
+				Set4xMsaaState(!_4xMsaaState);
 			}
 			break;
 	}
 
-	return DefWindowProc (hwnd, msg, wParam, lParam);
+	return DefWindowProc(hwnd, msg, wParam, lParam);
 }
 
-D3DApp* D3DApp::m_Instance = nullptr;
-D3DApp* D3DApp::GetApp () {
-	return m_Instance;
+D3DApp* D3DApp::_instance = nullptr;
+D3DApp* D3DApp::GetApp() {
+	return _instance;
 }
 
-D3DApp::D3DApp (HINSTANCE hInstance) : m_AppInstance (hInstance) {
-	assert (m_Instance == nullptr);
-	m_Instance = this;
+D3DApp::D3DApp(HINSTANCE hInstance) : _appInstance(hInstance) {
+	assert(_instance == nullptr);
+	_instance = this;
 }
 
-D3DApp::~D3DApp () {
-	if (m_Device != nullptr)
-		FlushCommandQueue ();
+D3DApp::~D3DApp() {
+	if (_device != nullptr)
+		FlushCommandQueue();
 }
 
-bool D3DApp::Initialize () {
-	if (!InitMainWindow ())
+bool D3DApp::Initialize() {
+	if (!InitMainWindow())
 		return false;
 
-	if (!InitDirect3D ())
+	if (!InitDirect3D())
 		return false;
 
 	// Do the initial resize code.
-	OnResize ();
+	OnResize();
 
 	return true;
 }
 
-bool D3DApp::InitMainWindow () {
+bool D3DApp::InitMainWindow() {
 	WNDCLASS wc;
 	wc.style = CS_HREDRAW | CS_VREDRAW;
 	wc.lpfnWndProc = MainWndProc;
 	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
-	wc.hInstance = m_AppInstance;
-	wc.hIcon = LoadIcon (0, IDI_APPLICATION);
-	wc.hCursor = LoadCursor (0, IDC_ARROW);
-	wc.hbrBackground = (HBRUSH)GetStockObject (NULL_BRUSH);
+	wc.hInstance = _appInstance;
+	wc.hIcon = LoadIcon(0, IDI_APPLICATION);
+	wc.hCursor = LoadCursor(0, IDC_ARROW);
+	wc.hbrBackground = (HBRUSH)GetStockObject(NULL_BRUSH);
 	wc.lpszMenuName = 0;
 	wc.lpszClassName = L"MainWnd";
 
-	if (!RegisterClass (&wc)) {
-		MessageBox (0, L"RegisterClass Failed.", 0, 0);
+	if (!RegisterClass(&wc)) {
+		MessageBox(0, L"RegisterClass Failed.", 0, 0);
 		return false;
 	}
 
 	// Compute window rectangle dimensions based on requested client area dimensions.
-	RECT R = {0, 0, m_ClientWidth, m_ClientHeight};
-	AdjustWindowRect (&R, WS_OVERLAPPEDWINDOW, false);
+	RECT R = {0, 0, _clientWidth, _clientHeight};
+	AdjustWindowRect(&R, WS_OVERLAPPEDWINDOW, false);
 	int width = R.right - R.left;
 	int height = R.bottom - R.top;
 
-	m_MainWnd = CreateWindow (L"MainWnd", m_MainWndCaption.c_str (),
-							 WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, width, height, 0, 0, m_AppInstance, 0);
+	_mainWnd = CreateWindow(L"MainWnd", _mainWndCaption.c_str(),
+							 WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, width, height, 0, 0, _appInstance, 0);
 
-	if (!m_MainWnd) {
-		MessageBox (0, L"CreateWindow Failed.", 0, 0);
+	if (!_mainWnd) {
+		MessageBox(0, L"CreateWindow Failed.", 0, 0);
 		return false;
 	}
 
-	ShowWindow (m_MainWnd, SW_SHOW);
-	UpdateWindow (m_MainWnd);
+	ShowWindow(_mainWnd, SW_SHOW);
+	UpdateWindow(_mainWnd);
 
 	return true;
 }
 
-bool D3DApp::InitDirect3D () {
+bool D3DApp::InitDirect3D() {
 
 #if defined(DEBUG) || defined (_DEBUG)
 	// Enable the D3D12 debug layer.
-	{
-		ComPtr<ID3D12Debug> debugController;
-		ThrowIfFailed (D3D12GetDebugInterface (IID_PPV_ARGS (&debugController)));
-		debugController->EnableDebugLayer ();
-	}
+	ComPtr<ID3D12Debug> debugController;
+	ThrowIfFailed(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)));
+	debugController->EnableDebugLayer();
 #endif
-	
-	ThrowIfFailed (CreateDXGIFactory1 (IID_PPV_ARGS (&m_DxgiFactory)));
+
+	ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&_dxgiFactory)));
 
 	//
 	// Try to create hardware device.
@@ -217,10 +215,10 @@ bool D3DApp::InitDirect3D () {
 
 	HRESULT hardwareResult;
 	for (auto level : levels) {
-		hardwareResult = D3D12CreateDevice (
+		hardwareResult = D3D12CreateDevice(
 			nullptr,		// default
 			level,
-			IID_PPV_ARGS (&m_Device)
+			IID_PPV_ARGS(&_device)
 		);
 		if (hardwareResult == S_OK) {
 			break;
@@ -228,12 +226,12 @@ bool D3DApp::InitDirect3D () {
 	}
 
 	// Fallback to WARP device.
-	if (FAILED (hardwareResult)) {
+	if (FAILED(hardwareResult)) {
 		ComPtr<IDXGIAdapter> pWarpAdapter;
-		ThrowIfFailed (m_DxgiFactory->EnumWarpAdapter (IID_PPV_ARGS (&pWarpAdapter)));
+		ThrowIfFailed(_dxgiFactory->EnumWarpAdapter(IID_PPV_ARGS(&pWarpAdapter)));
 
 		for (auto level : levels) {
-			ThrowIfFailed (D3D12CreateDevice (pWarpAdapter.Get (), level, IID_PPV_ARGS (&m_Device)));
+			ThrowIfFailed(D3D12CreateDevice(pWarpAdapter.Get(), level, IID_PPV_ARGS(&_device)));
 		}
 	}
 
@@ -241,62 +239,62 @@ bool D3DApp::InitDirect3D () {
 	// Create Fence
 	//
 
-	ThrowIfFailed (m_Device->CreateFence (0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS (&m_Fence)));
+	ThrowIfFailed(_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&_fence)));
 
 	// Save the size of view.
-	m_RtvDescriptorSize = m_Device->GetDescriptorHandleIncrementSize (D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	m_DsvDescriptorSize = m_Device->GetDescriptorHandleIncrementSize (D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-	m_CbvSrvUavDescriptorSize = m_Device->GetDescriptorHandleIncrementSize (D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	_rtvDescriptorSize = _device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	_dsvDescriptorSize = _device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	_cbvSrvUavDescriptorSize = _device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 	// Chcek 4X MSAA quality support for our back buffer format.
 	// All Direct3D 11 capable devices support 4X MSAA for all render
 	// target formats, so we only need to check quality support.
 	D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS msQualityLevels;
-	msQualityLevels.Format = m_BackBufferFormat;
+	msQualityLevels.Format = _backBufferFormat;
 	msQualityLevels.SampleCount = 4;
 	msQualityLevels.Flags = D3D12_MULTISAMPLE_QUALITY_LEVELS_FLAG_NONE;
 	msQualityLevels.NumQualityLevels = 0;
-	ThrowIfFailed (m_Device->CheckFeatureSupport (
+	ThrowIfFailed(_device->CheckFeatureSupport(
 		D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS,
 		&msQualityLevels,
-		sizeof (msQualityLevels)
+		sizeof(msQualityLevels)
 	));
 
-	m_4xMsaaQuality = msQualityLevels.NumQualityLevels;
-	assert (m_4xMsaaQuality > 0 && "Unexpected MSAA quality level.");
+	_4xMsaaQuality = msQualityLevels.NumQualityLevels;
+	assert(_4xMsaaQuality > 0 && "Unexpected MSAA quality level.");
 
 #ifdef _DEBUG
-	LogAdapters ();
+	LogAdapters();
 #endif
 
-	CreateCommandObjects ();
-	CreateSwapChain ();
-	CreateRtvAndDsvDescriptorHeaps ();
+	CreateCommandObjects();
+	CreateSwapChain();
+	CreateRtvAndDsvDescriptorHeaps();
 
 	return true;
 }
 
-int D3DApp::Run () {
+int D3DApp::Run() {
 	MSG msg = {0};
 
-	m_Timer.Reset ();
+	_timer.Reset();
 
 	while (msg.message != WM_QUIT) {
 		// If there are Window messages then process them.
-		if (PeekMessage (&msg, 0, 0, 0, PM_REMOVE)) {
-			TranslateMessage (&msg);
-			DispatchMessage (&msg);
+		if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
 		}
 		// Otherwise, do animation/game stuff.
 		else {
-			m_Timer.Tick ();
+			_timer.Tick();
 
-			if (!m_AppPaused) {
-				CalculateFrameStats ();
-				Update (m_Timer);
-				Draw (m_Timer);
+			if (!_appPaused) {
+				CalculateFrameStats();
+				Update(_timer);
+				Draw(_timer);
 			} else {
-				Sleep (100);
+				Sleep(100);
 			}
 		}
 	}
@@ -304,241 +302,231 @@ int D3DApp::Run () {
 	return (int)msg.wParam;
 }
 
-void D3DApp::CreateCommandObjects () {
+void D3DApp::CreateCommandObjects() {
 	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
 	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-	ThrowIfFailed (m_Device->CreateCommandQueue (&queueDesc, IID_PPV_ARGS (&m_CmdQueue)));
+	ThrowIfFailed(_device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&_cmdQueue)));
 
-	ThrowIfFailed (m_Device->CreateCommandAllocator (
-					D3D12_COMMAND_LIST_TYPE_DIRECT, 
-					IID_PPV_ARGS (m_CmdAllocator.GetAddressOf ())
-				  )
+	ThrowIfFailed(_device->CreateCommandAllocator(
+		D3D12_COMMAND_LIST_TYPE_DIRECT,
+		IID_PPV_ARGS(_cmdAllocator.GetAddressOf())
+	)
 	);
 
-	ThrowIfFailed (m_Device->CreateCommandList (
-			0,
-			D3D12_COMMAND_LIST_TYPE_DIRECT,
-			m_CmdAllocator.Get (),		// Associated command allocator
-			nullptr,					// Initial PipelineStateObject
-			IID_PPV_ARGS (m_CmdList.GetAddressOf ())
-		)
+	ThrowIfFailed(_device->CreateCommandList(
+		0,
+		D3D12_COMMAND_LIST_TYPE_DIRECT,
+		_cmdAllocator.Get(),		// Associated command allocator
+		nullptr,					// Initial PipelineStateObject
+		IID_PPV_ARGS(_cmdList.GetAddressOf())
+	)
 	);
 
 	// Start off in a closed state. This is because the first time we refer
 	// to the command list we will Reset it, and it needs to be closed before
 	// calling Reset.
-	m_CmdList->Close ();
+	_cmdList->Close();
 }
 
-void D3DApp::CreateSwapChain () {
+void D3DApp::CreateSwapChain() {
 	// Release the previous swapchain we will be recreating.
-	m_SwapChain.Reset ();
+	_swapChain.Reset();
 
 	DXGI_SWAP_CHAIN_DESC sd = {};
-	sd.BufferDesc.Width = m_ClientWidth;
-	sd.BufferDesc.Height = m_ClientHeight;
+	sd.BufferDesc.Width = _clientWidth;
+	sd.BufferDesc.Height = _clientHeight;
 	sd.BufferDesc.RefreshRate.Numerator = 60;
 	sd.BufferDesc.RefreshRate.Denominator = 1;
-	sd.BufferDesc.Format = m_BackBufferFormat;
+	sd.BufferDesc.Format = _backBufferFormat;
 	sd.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;		// 逐行掃描 vs 隔行掃瞄
 	sd.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;						// 圖像如何相對於屏幕進行拉伸
-	sd.SampleDesc.Count = m_4xMsaaState ? 4 : 1;
-	sd.SampleDesc.Quality = m_4xMsaaState ? (m_4xMsaaQuality - 1) : 0;
-	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;							
-	sd.BufferCount = m_SwapChainBufferCount;
-	sd.OutputWindow = m_MainWnd;
+	sd.SampleDesc.Count = 1;
+	sd.SampleDesc.Quality = 0;
+	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	sd.BufferCount = _swapChainBufferCount;
+	sd.OutputWindow = _mainWnd;
 	sd.Windowed = true;
 	sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	sd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 	// Note: Swap chain uses queue to perform flush.
-	ThrowIfFailed (m_DxgiFactory->CreateSwapChain (
-						m_CmdQueue.Get (),
-						&sd,
-						m_SwapChain.GetAddressOf ()
-				  )
+	ThrowIfFailed(_dxgiFactory->CreateSwapChain(
+		_cmdQueue.Get(),
+		&sd,
+		_swapChain.GetAddressOf()
+	)
 	);
 }
 
-void D3DApp::CreateRtvAndDsvDescriptorHeaps () {
+void D3DApp::CreateRtvAndDsvDescriptorHeaps() {
 	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc;
-	rtvHeapDesc.NumDescriptors = m_SwapChainBufferCount;
+	rtvHeapDesc.NumDescriptors = _swapChainBufferCount;
 	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 	rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	rtvHeapDesc.NodeMask = 0;
-	ThrowIfFailed (m_Device->CreateDescriptorHeap (
-					&rtvHeapDesc, IID_PPV_ARGS (m_RTVHeap.GetAddressOf ())
-				  )
-	);
+	ThrowIfFailed(_device->CreateDescriptorHeap(
+		&rtvHeapDesc, IID_PPV_ARGS(_rtvHeap.GetAddressOf())
+	));
 
 	D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc;
 	dsvHeapDesc.NumDescriptors = 1;
 	dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
 	dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	dsvHeapDesc.NodeMask = 0;
-	ThrowIfFailed (m_Device->CreateDescriptorHeap (
-					&dsvHeapDesc, IID_PPV_ARGS (m_DSVHeap.GetAddressOf ())
-				  )
-	);
+	ThrowIfFailed(_device->CreateDescriptorHeap(
+		&dsvHeapDesc, IID_PPV_ARGS(_dsvHeap.GetAddressOf())
+	));
 }
 
-void D3DApp::OnResize () {
-	assert (m_Device);
-	assert (m_SwapChain);
-	assert (m_CmdAllocator);
+void D3DApp::OnResize() {
+	assert(_device);
+	assert(_swapChain);
+	assert(_cmdAllocator);
 
 	// Flush before changing any resources
-	FlushCommandQueue ();
+	FlushCommandQueue();
 
-	ThrowIfFailed (m_CmdList->Reset (m_CmdAllocator.Get (), nullptr));
+	ThrowIfFailed(_cmdList->Reset(_cmdAllocator.Get(), nullptr));
 
 	// Release the previous resources we will be recreating.
-	for (int i = 0; i < m_SwapChainBufferCount; ++i)
-		m_SwapChainBuffer[i].Reset ();
-	m_DepthStencilBuffer.Reset ();
+	for (int i = 0; i < _swapChainBufferCount; ++i)
+		_swapChainBuffer[i].Reset();
+	_depthStencilBuffer.Reset();
 
 	// Resize the swap chain.
-	ThrowIfFailed (m_SwapChain->ResizeBuffers (
-						m_SwapChainBufferCount,
-						m_ClientWidth, m_ClientHeight,
-						m_BackBufferFormat,
-						DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH
-					)
+	ThrowIfFailed(_swapChain->ResizeBuffers(
+		_swapChainBufferCount,
+		_clientWidth, _clientHeight,
+		_backBufferFormat,
+		DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH
+	)
 	);
 
-	m_CurrentBackBuffer = 0;
+	_currentBackBuffer = 0;
 
-	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle (m_RTVHeap->GetCPUDescriptorHandleForHeapStart ());
-	for (UINT i = 0; i < m_SwapChainBufferCount; i++) {
-		ThrowIfFailed (m_SwapChain->GetBuffer (i, IID_PPV_ARGS (&m_SwapChainBuffer [i])));
-		m_Device->CreateRenderTargetView (m_SwapChainBuffer [i].Get (), nullptr, rtvHeapHandle);
-		rtvHeapHandle.Offset (1, m_RtvDescriptorSize);
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle(_rtvHeap->GetCPUDescriptorHandleForHeapStart());
+	for (UINT i = 0; i < _swapChainBufferCount; i++) {
+		ThrowIfFailed(_swapChain->GetBuffer(i, IID_PPV_ARGS(&_swapChainBuffer[i])));
+		_device->CreateRenderTargetView(_swapChainBuffer[i].Get(), nullptr, rtvHeapHandle);
+		rtvHeapHandle.ptr += _rtvDescriptorSize;
 	}
 
 	// Create the depth/stencil buffer and view.
 	D3D12_RESOURCE_DESC depthStencilDesc;
 	depthStencilDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	depthStencilDesc.Alignment = 0;
-	depthStencilDesc.Width = m_ClientWidth;
-	depthStencilDesc.Height = m_ClientHeight;
+	depthStencilDesc.Width = _clientWidth;
+	depthStencilDesc.Height = _clientHeight;
 	depthStencilDesc.DepthOrArraySize = 1;
 	depthStencilDesc.MipLevels = 1;
 	depthStencilDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
-	depthStencilDesc.SampleDesc.Count = m_4xMsaaState ? 4 : 1;
-	depthStencilDesc.SampleDesc.Quality = m_4xMsaaState ? (m_4xMsaaQuality - 1) : 0;
+	depthStencilDesc.SampleDesc.Count = 1;
+	depthStencilDesc.SampleDesc.Quality = 0;
 	depthStencilDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	depthStencilDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
 	D3D12_CLEAR_VALUE optClear;
-	optClear.Format = m_DepthStencilFormat;
+	optClear.Format = _depthStencilFormat;
 	optClear.DepthStencil.Depth = 1.0f;
 	optClear.DepthStencil.Stencil = 0;
-	ThrowIfFailed (m_Device->CreateCommittedResource (
-		&CD3DX12_HEAP_PROPERTIES (D3D12_HEAP_TYPE_DEFAULT),
+	ThrowIfFailed(_device->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
 		D3D12_HEAP_FLAG_NONE,
 		&depthStencilDesc,
 		D3D12_RESOURCE_STATE_COMMON,
 		&optClear,
-		IID_PPV_ARGS (m_DepthStencilBuffer.GetAddressOf ())
+		IID_PPV_ARGS(_depthStencilBuffer.GetAddressOf())
 	));
 
 	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc;
 	dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
 	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
-	dsvDesc.Format = m_DepthStencilFormat;
+	dsvDesc.Format = _depthStencilFormat;
 	dsvDesc.Texture2D.MipSlice = 0;
-	m_Device->CreateDepthStencilView (m_DepthStencilBuffer.Get (), &dsvDesc, DepthStencilView ());
-
-	// Transition the resource from its initial state to be used as a depth buffer.
-	m_CmdList->ResourceBarrier (1, &CD3DX12_RESOURCE_BARRIER::Transition (m_DepthStencilBuffer.Get (),
-																		 D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
+	_device->CreateDepthStencilView(_depthStencilBuffer.Get(), &dsvDesc, DepthStencilView());
 
 	// Execute the resize commands.
-	ThrowIfFailed (m_CmdList->Close ());
-	ID3D12CommandList* cmdsLists[] = {m_CmdList.Get ()};
-	m_CmdQueue->ExecuteCommandLists (_countof (cmdsLists), cmdsLists);
+	ThrowIfFailed(_cmdList->Close());
+	ID3D12CommandList* cmdsLists[] = {_cmdList.Get()};
+	_cmdQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
 
 	// Wait until resize is complete.
-	FlushCommandQueue ();
+	FlushCommandQueue();
 
 	// Update the viewport transform to cover the client area.
-	m_Viewport.TopLeftX = 0;
-	m_Viewport.TopLeftY = 0;
+	_viewport.TopLeftX = 0;
+	_viewport.TopLeftY = 0;
 
-	// 練習 12
-	//m_Viewport.Width = static_cast<float> (m_ClientWidth / 2.0f);
-	m_Viewport.Width = static_cast<float> (m_ClientWidth);
-	m_Viewport.Height = static_cast<float> (m_ClientHeight);
-	m_Viewport.MinDepth = 0.0f;	
-	m_Viewport.MaxDepth = 1.0f;
+#pragma region Exercise 12
+	//_viewport.Width = static_cast<float> (_clientWidth / 2.0f);
+#pragma endregion
+	_viewport.Width = static_cast<float> (_clientWidth);
+	_viewport.Height = static_cast<float> (_clientHeight);
+	_viewport.MinDepth = 0.0f;
+	_viewport.MaxDepth = 1.0f;
 
-	// 練習 13
-	//long halfWidth = m_ClientWidth / 2;
-	//long halfHeight = m_ClientHeight / 2;
-	//m_ScissorRect = {halfWidth / 2, halfHeight / 2, halfWidth + halfWidth / 2, halfHeight + halfHeight / 2};
-	m_ScissorRect = {0, 0, m_ClientWidth, m_ClientHeight};
+#pragma region Exercise 13
+	long halfWidth = _clientWidth / 2;
+	long halfHeight = _clientHeight / 2;
+	//_scissorRect = {halfWidth / 2, halfHeight / 2, halfWidth + halfWidth / 2, halfHeight + halfHeight / 2};
+#pragma endregion
+	_scissorRect = {0, 0, _clientWidth, _clientHeight};
 }
 
-void D3DApp::FlushCommandQueue () {
-	m_CurrentFence++;
+void D3DApp::FlushCommandQueue() {
+	_currentFence++;
 
-	ThrowIfFailed (m_CmdQueue->Signal (m_Fence.Get (), m_CurrentFence));
+	ThrowIfFailed(_cmdQueue->Signal(_fence.Get(), _currentFence));
 
-	if (m_Fence->GetCompletedValue () < m_CurrentFence) {
-		HANDLE eventHandle = CreateEventEx (nullptr, false, false, EVENT_ALL_ACCESS);
+	if (_fence->GetCompletedValue() < _currentFence) {
+		HANDLE eventHandle = CreateEventEx(nullptr, false, false, EVENT_ALL_ACCESS);
 
-		ThrowIfFailed (m_Fence->SetEventOnCompletion (m_CurrentFence, eventHandle));
+		ThrowIfFailed(_fence->SetEventOnCompletion(_currentFence, eventHandle));
 
-		WaitForSingleObject (eventHandle, INFINITE);
-		CloseHandle (eventHandle);
+		WaitForSingleObject(eventHandle, INFINITE);
+		CloseHandle(eventHandle);
 	}
 }
 
-ID3D12Resource* D3DApp::CurrentBackBuffer () const {
-	return m_SwapChainBuffer[m_CurrentBackBuffer].Get ();
+ID3D12Resource* D3DApp::CurrentBackBuffer() const {
+	return _swapChainBuffer[_currentBackBuffer].Get();
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE D3DApp::CurrentBackBufferView () const {
-	/* ﾏ牋肥ｶ
-		D3D12_CPU_DESCRIPTOR_HANDLE rtvH = m_RTVHeap->GetCPUDescriptorHandleForHeapStart ();
-		rtvH.ptr += m_CurrentBackBuffer * m_RTVDescriptorSize;
-		return rtvH;
-	*/
-
-	return CD3DX12_CPU_DESCRIPTOR_HANDLE (
-		m_RTVHeap->GetCPUDescriptorHandleForHeapStart (),
-		m_CurrentBackBuffer,
-		m_RtvDescriptorSize
+D3D12_CPU_DESCRIPTOR_HANDLE D3DApp::CurrentBackBufferView() const {
+	return CD3DX12_CPU_DESCRIPTOR_HANDLE(
+		_rtvHeap->GetCPUDescriptorHandleForHeapStart(),
+		_currentBackBuffer,
+		_rtvDescriptorSize
 	);
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE D3DApp::DepthStencilView () const {
-	return m_DSVHeap->GetCPUDescriptorHandleForHeapStart ();
+D3D12_CPU_DESCRIPTOR_HANDLE D3DApp::DepthStencilView() const {
+	return _dsvHeap->GetCPUDescriptorHandleForHeapStart();
 }
 
-void D3DApp::CalculateFrameStats () {
+void D3DApp::CalculateFrameStats() {
 	// Code computes the average frames per second, and also the
 	// average time it takes to render one frame. These stats
 	// are appended to the window caption bar.
 
 	static int frameCnt = 0;
 	static float timeElapsed = 0.0f;
-	
+
 	frameCnt++;
 
-	if (m_Timer.TotalTime () - timeElapsed >= 1.0f) {
+	if (_timer.TotalTime() - timeElapsed >= 1.0f) {
 		float fps = (float)frameCnt;
 		float mspf = 1000.0f / fps;
 
-		wstring fpsStr = to_wstring (fps);
-		wstring mspfStr = to_wstring (mspf);
+		wstring fpsStr = to_wstring(fps);
+		wstring mspfStr = to_wstring(mspf);
 
-		wstring windowText = m_MainWndCaption +
+		wstring windowText = _mainWndCaption +
 			L"    fps: " + fpsStr +
 			L"   mspf: " + mspfStr;
 
-		SetWindowText (m_MainWnd, windowText.c_str ());
+		SetWindowText(_mainWnd, windowText.c_str());
 
 		// Reset for next average.
 		frameCnt = 0;
@@ -547,95 +535,87 @@ void D3DApp::CalculateFrameStats () {
 }
 
 HINSTANCE D3DApp::AppInstance() const {
-	return m_AppInstance;
+	return _appInstance;
 }
 
-HWND D3DApp::MainWnd () const {
-	return m_MainWnd;
+HWND D3DApp::MainWnd() const {
+	return _mainWnd;
 }
 
-float D3DApp::AspectRatio () const {
-	return static_cast<float> (m_ClientWidth) / m_ClientHeight;
+float D3DApp::AspectRatio() const {
+	return static_cast<float> (_clientWidth) / _clientHeight;
 }
 
-bool D3DApp::Get4xMsaaState () const {
-	return m_4xMsaaState;
+bool D3DApp::Get4xMsaaState() const {
+	return _4xMsaaState;
 }
 
-void D3DApp::Set4xMsaaState (bool value) {
-	if (m_4xMsaaState != value) {
-		m_4xMsaaState = value;
-	
-		// Recreate the swapchain and buffers with new multisample settings
-		CreateSwapChain ();
-		OnResize ();
-	}
-}
+void D3DApp::Set4xMsaaState(bool value) {}
 
-void D3DApp::LogAdapters () {
+void D3DApp::LogAdapters() {
 	UINT i = 0;
 	IDXGIAdapter* adapter = nullptr;
 	std::vector<IDXGIAdapter*> adapterList;
-	while (m_DxgiFactory->EnumAdapters (i, &adapter) != DXGI_ERROR_NOT_FOUND) {
+	while (_dxgiFactory->EnumAdapters(i, &adapter) != DXGI_ERROR_NOT_FOUND) {
 		DXGI_ADAPTER_DESC desc;
-		adapter->GetDesc (&desc);
+		adapter->GetDesc(&desc);
 
 		std::wstring text = L"***Adapter: ";
 		text += desc.Description;
 		text += L"\n";
 
-		OutputDebugString (text.c_str ());
+		OutputDebugString(text.c_str());
 
-		adapterList.push_back (adapter);
+		adapterList.push_back(adapter);
 
 		++i;
 	}
 
-	for (size_t i = 0; i < adapterList.size (); ++i) {
-		LogAdapterOutputs (adapterList[i]);
-		ReleaseCom (adapterList[i]);
+	for (size_t i = 0; i < adapterList.size(); ++i) {
+		LogAdapterOutputs(adapterList[i]);
+		ReleaseCom(adapterList[i]);
 	}
 }
 
-void D3DApp::LogAdapterOutputs (IDXGIAdapter* adapter) {
+void D3DApp::LogAdapterOutputs(IDXGIAdapter* adapter) {
 	UINT i = 0;
 	IDXGIOutput* output = nullptr;
-	while (adapter->EnumOutputs (i, &output) != DXGI_ERROR_NOT_FOUND) {
+	while (adapter->EnumOutputs(i, &output) != DXGI_ERROR_NOT_FOUND) {
 		DXGI_OUTPUT_DESC desc;
-		output->GetDesc (&desc);
+		output->GetDesc(&desc);
 
 		std::wstring text = L"***Output: ";
 		text += desc.DeviceName;
 		text += L"\n";
-		OutputDebugString (text.c_str ());
+		OutputDebugString(text.c_str());
 
-		LogOutputDisplayModes (output, m_BackBufferFormat);
+		LogOutputDisplayModes(output, _backBufferFormat);
 
-		ReleaseCom (output);
+		ReleaseCom(output);
 
 		++i;
 	}
 }
 
-void D3DApp::LogOutputDisplayModes (IDXGIOutput* output, DXGI_FORMAT format) {
+void D3DApp::LogOutputDisplayModes(IDXGIOutput* output, DXGI_FORMAT format) {
 	UINT count = 0;
 	UINT flags = 0;
 
 	// Call with nullptr to get list count.
-	output->GetDisplayModeList (format, flags, &count, nullptr);
+	output->GetDisplayModeList(format, flags, &count, nullptr);
 
-	std::vector<DXGI_MODE_DESC> modeList (count);
-	output->GetDisplayModeList (format, flags, &count, &modeList[0]);
+	std::vector<DXGI_MODE_DESC> modeList(count);
+	output->GetDisplayModeList(format, flags, &count, &modeList[0]);
 
 	for (auto& x : modeList) {
 		UINT n = x.RefreshRate.Numerator;
 		UINT d = x.RefreshRate.Denominator;
 		std::wstring text =
-			L"Width = " + std::to_wstring (x.Width) + L" " +
-			L"Height = " + std::to_wstring (x.Height) + L" " +
-			L"Refresh = " + std::to_wstring (n) + L"/" + std::to_wstring (d) +
+			L"Width = " + std::to_wstring(x.Width) + L" " +
+			L"Height = " + std::to_wstring(x.Height) + L" " +
+			L"Refresh = " + std::to_wstring(n) + L"/" + std::to_wstring(d) +
 			L"\n";
 
-		::OutputDebugString (text.c_str ());
+		::OutputDebugString(text.c_str());
 	}
 }

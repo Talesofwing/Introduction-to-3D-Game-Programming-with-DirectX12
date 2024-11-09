@@ -7,25 +7,34 @@ using namespace DirectX;
 using namespace DirectX::PackedVector;
 
 
+
 struct Vertex {
 	XMFLOAT3 Pos;
 	XMFLOAT4 Tangent;
-	
-	// 練習 1
+
+#pragma region Exercise 1
+
 	//XMFLOAT3 Normal;
 	//XMFLOAT2 Tex0;
 	//XMFLOAT2 Tex1;
 	//XMCOLOR Color;
+
+#pragma endregion
 };
 
-// 練習 10
+#pragma region Exercise 10
+
 struct Vertex2 {
 	XMFLOAT3 Pos;
 	XMCOLOR Color;
 };
 
-// 練習 2
-struct VPosData {	
+#pragma endregion
+
+
+#pragma region Exercise 2
+
+struct VPosData {
 	XMFLOAT3 Pos;
 };
 
@@ -33,162 +42,160 @@ struct VColorData {
 	XMFLOAT4 Color;
 };
 
+#pragma endregion
+
 struct ObjectConstants {
-	XMFLOAT4X4 WorldViewProj = MathHelper::Identity4x4 ();
+	XMFLOAT4X4 WorldViewProj = MathHelper::Identity4x4();
+
+#pragma region Exercise 16
 	XMFLOAT4 PulseColor;
+#pragma endregion
+
+#pragma region Exercise 6
 	float Time = 0.0f;
+#pragma endregion
 };
 
 class BoxApp : public D3DApp {
 public:
-
-	BoxApp (HINSTANCE hInstance);
-	BoxApp (const BoxApp& rhs) = delete;
+	BoxApp(HINSTANCE hInstance);
+	BoxApp(const BoxApp& rhs) = delete;
 	BoxApp& operator=(const BoxApp& rhs) = delete;
-	~BoxApp ();
+	~BoxApp();
 
-	virtual bool Initialize () override;
-
-private:
-	
-	virtual void OnResize () override;
-	virtual void Update (const GameTimer& gt) override;
-	virtual void Draw (const GameTimer& gt) override;
-
-	virtual void OnMouseDown (WPARAM btnState, int x, int y) override;
-	virtual void OnMouseUp (WPARAM btnState, int x, int y) override;
-	virtual void OnMouseMove (WPARAM btnState, int x, int y) override;
-
-	void BuildDescriptorHeaps ();
-	void BuildConstantBuffers ();
-	void BuildRootSignature ();
-	void BuildShadersAndInputLayout ();
-	void BuildBoxGeometry ();
-	void BuildPSO ();
-
-	// 練習 4
-	void BuildPyramidGeometry ();
-
-	// 練習 7
-	void BuildBoxAndPyramidGeometry ();
+	virtual bool Initialize() override;
 
 private:
+	virtual void OnResize() override;
+	virtual void Update(const GameTimer& gt) override;
+	virtual void Draw(const GameTimer& gt) override;
 
-	std::vector<D3D12_INPUT_ELEMENT_DESC> m_InputLayout;
-	ComPtr<ID3D12PipelineState> m_PSO = nullptr;
-	ComPtr<ID3D12RootSignature> m_RootSignature = nullptr;
+	virtual void OnMouseDown(WPARAM btnState, int x, int y) override;
+	virtual void OnMouseUp(WPARAM btnState, int x, int y) override;
+	virtual void OnMouseMove(WPARAM btnState, int x, int y) override;
 
-	ComPtr<ID3D12DescriptorHeap> m_CBVHeap = nullptr;
-	std::unique_ptr<UploadBuffer<ObjectConstants>> m_ObjectCB = nullptr;
+	void BuildDescriptorHeaps();
+	void BuildConstantBuffers();
+	void BuildRootSignature();
+	void BuildShadersAndInputLayout();
+	void BuildBoxGeometry();
+	void BuildPSO();
 
-	std::unique_ptr<MeshGeometry> m_BoxGeo = nullptr;
+#pragma region Exercise 4
+	void BuildPyramidGeometry();
+#pragma endregion
 
-	ComPtr<ID3DBlob> m_VSByteCode = nullptr;
-	ComPtr<ID3DBlob> m_PSByteCode = nullptr;
+#pragma region Exercise 7
+	void BuildBoxAndPyramidGeometry();
+#pragma endregion
 
-	XMFLOAT4X4 m_World = MathHelper::Identity4x4 ();
-	XMFLOAT4X4 m_View = MathHelper::Identity4x4 ();
-	XMFLOAT4X4 m_Proj = MathHelper::Identity4x4 ();
+private:
+	std::vector<D3D12_INPUT_ELEMENT_DESC> _inputLayout;
+	ComPtr<ID3D12PipelineState> _pso = nullptr;
+	ComPtr<ID3D12RootSignature> _rootSignature = nullptr;
 
-	float m_Theta = 1.5f * XM_PI;
-	float m_Phi = XM_PIDIV4;
-	float m_Radius = 10.0f;			
+	ComPtr<ID3D12DescriptorHeap> _cbvHeap = nullptr;
+	std::unique_ptr<UploadBuffer<ObjectConstants>> _objectCB = nullptr;
 
-	POINT m_LastMousePos;
+	std::unique_ptr<MeshGeometry> _boxGeo = nullptr;
 
-	// 練習 4
-	std::unique_ptr<MeshGeometry> m_PyramidGeo = nullptr;
+	ComPtr<ID3DBlob> _vsByteCode = nullptr;
+	ComPtr<ID3DBlob> _psByteCode = nullptr;
 
-	// 練習 7
-	std::unique_ptr<MeshGeometry> m_MultipleGeo = nullptr;
-	std::unique_ptr<UploadBuffer<ObjectConstants>> m_ObjectCB2 = nullptr;
+	XMFLOAT4X4 _world = MathHelper::Identity4x4();
+	XMFLOAT4X4 _view = MathHelper::Identity4x4();
+	XMFLOAT4X4 _proj = MathHelper::Identity4x4();
+
+	float _theta = 0 * XM_PI;
+	float _phi = XM_PIDIV2;
+	float _radius = 10.0f;
+
+	POINT _lastMousePos;
+
+#pragma region Exercise 4
+	std::unique_ptr<MeshGeometry> _pyramidGeo = nullptr;
+#pragma endregion
+
+#pragma region Exercise 7
+	std::unique_ptr<MeshGeometry> _multipleGeo = nullptr;
+#pragma endregion
 };
 
-int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE prevInstance,
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
 					PSTR cmdLine, int showCmd) {
 	 // Enable run-time memory check for debug builds.
 #if defined(DEBUG) | defined(_DEBUG)
-	_CrtSetDbgFlag (_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 
-	//OutputDebugStringA ("Kuma : ");
-	//OutputDebugStringA (std::to_string (sizeof (XMFLOAT4X4)).c_str ());
-	//OutputDebugStringA ("\n");
-	//OutputDebugStringA (std::to_string (sizeof (float)).c_str ());
-	//OutputDebugStringA ("\n");
-	//OutputDebugStringA (std::to_string (sizeof (XMFLOAT4)).c_str ());
-	//OutputDebugStringA ("\n");
-	//OutputDebugStringA (std::to_string (sizeof (ObjectConstants)).c_str ());
-	//OutputDebugStringA ("\n");
-
 	try {
-		BoxApp theApp (hInstance);
-		if (!theApp.Initialize ())
+		BoxApp theApp(hInstance);
+		if (!theApp.Initialize()) {
 			return 0;
+		}
 
-		return theApp.Run ();
-	} catch (DxException & e) {
-		MessageBox (nullptr, e.ToString ().c_str (), L"HR Failed", MB_OK);
+		return theApp.Run();
+	} catch (DxException& e) {
+		MessageBox(nullptr, e.ToString().c_str(), L"HR Failed", MB_OK);
 		return 0;
 	}
 }
 
-BoxApp::BoxApp (HINSTANCE hInstance) : D3DApp (hInstance) {
-	m_MainWndCaption = L"Chapter 6 - Box";
+BoxApp::BoxApp(HINSTANCE hInstance) : D3DApp(hInstance) {
+	_mainWndCaption = L"Chapter 6 - Box";
 }
 
-BoxApp::~BoxApp () {}
+BoxApp::~BoxApp() {}
 
-bool BoxApp::Initialize () {
-	if (!D3DApp::Initialize ())
+bool BoxApp::Initialize() {
+	if (!D3DApp::Initialize())
 		return false;
 
 	// Reset the command list to prep for initialization commands.
-	ThrowIfFailed (m_CmdList->Reset (m_CmdAllocator.Get (), nullptr));
+	ThrowIfFailed(_cmdList->Reset(_cmdAllocator.Get(), nullptr));
 
-	BuildDescriptorHeaps ();
-	BuildConstantBuffers ();
-	BuildRootSignature ();
-	BuildShadersAndInputLayout ();
-	BuildBoxGeometry ();
-	BuildPSO ();
+	BuildDescriptorHeaps();
+	BuildConstantBuffers();
+	BuildRootSignature();
+	BuildShadersAndInputLayout();
+	BuildBoxGeometry();
+	BuildPSO();
 
-	// 練習 4
-	BuildPyramidGeometry ();
+#pragma region Exercise 4
+	BuildPyramidGeometry();
+#pragma endregion
 
-	// 練習 7
-	BuildBoxAndPyramidGeometry ();
+#pragma region Exercise 7
+	BuildBoxAndPyramidGeometry();
+#pragma endregion
 
-	ThrowIfFailed (m_CmdList->Close ());
-	ID3D12CommandList* cmdLists[] = {m_CmdList.Get ()};
-	m_CmdQueue->ExecuteCommandLists (_countof (cmdLists), cmdLists);
+	ThrowIfFailed(_cmdList->Close());
+	ID3D12CommandList* cmdLists[] = {_cmdList.Get()};
+	_cmdQueue->ExecuteCommandLists(_countof(cmdLists), cmdLists);
 
-	FlushCommandQueue ();
+	FlushCommandQueue();
 
-	m_BoxGeo->DisposeUploaders ();
+	_boxGeo->DisposeUploaders();
 
 	return true;
 }
 
-void BoxApp::BuildDescriptorHeaps () {
+void BoxApp::BuildDescriptorHeaps() {
 	D3D12_DESCRIPTOR_HEAP_DESC cbvHeapDesc;
 	cbvHeapDesc.NumDescriptors = 2;
 	cbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	cbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	cbvHeapDesc.NodeMask = 0;
-	ThrowIfFailed (m_Device->CreateDescriptorHeap (&cbvHeapDesc, IID_PPV_ARGS (&m_CBVHeap)));
+	ThrowIfFailed(_device->CreateDescriptorHeap(&cbvHeapDesc, IID_PPV_ARGS(&_cbvHeap)));
 }
 
-void BoxApp::BuildConstantBuffers () {
-	// 練習 7
-	m_ObjectCB = std::make_unique<UploadBuffer<ObjectConstants>> (m_Device.Get (), 2, true);
+void BoxApp::BuildConstantBuffers() {
+	_objectCB = std::make_unique<UploadBuffer<ObjectConstants>>(_device.Get(), 2, true);
 
-	UINT objCBByteSize = D3DUtil::CalcConstantBufferByteSize (sizeof (ObjectConstants));
+	UINT objCBByteSize = D3DUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
 
-	// 緩存區的起始地址
-	D3D12_GPU_VIRTUAL_ADDRESS cbAddress = m_ObjectCB->Resource ()->GetGPUVirtualAddress ();
-	
-	// 偏移到常量綠沖區中繪制第i個物體所需的常量數據
+	D3D12_GPU_VIRTUAL_ADDRESS cbAddress = _objectCB->Resource()->GetGPUVirtualAddress();
+
 	int boxCBufIndex = 0;
 	cbAddress += boxCBufIndex * objCBByteSize;
 
@@ -196,138 +203,104 @@ void BoxApp::BuildConstantBuffers () {
 	cbvDesc.BufferLocation = cbAddress;
 	cbvDesc.SizeInBytes = objCBByteSize;
 
-	auto handle = m_CBVHeap->GetCPUDescriptorHandleForHeapStart ();
+#pragma region Exercise 7
+	auto handle = _cbvHeap->GetCPUDescriptorHandleForHeapStart();
 
-	m_Device->CreateConstantBufferView (&cbvDesc, handle);
+	_device->CreateConstantBufferView(&cbvDesc, handle);
 
-	// 練習 7
 	cbAddress += objCBByteSize;
 	cbvDesc.BufferLocation = cbAddress;
 
-	handle.ptr += m_CbvSrvUavDescriptorSize;
+	handle.ptr += _cbvSrvUavDescriptorSize;
+#pragma endregion
 
-	m_Device->CreateConstantBufferView (&cbvDesc, handle);
+	_device->CreateConstantBufferView(&cbvDesc, handle);
 }
 
-void BoxApp::BuildRootSignature () {
-	// 根參數可以是描述符表、根描述符或根常量
+void BoxApp::BuildRootSignature() {
 	CD3DX12_ROOT_PARAMETER slotRootParameter[1];
-	// 創建一個只存有一個CBV的描述符表
 	CD3DX12_DESCRIPTOR_RANGE cbvTable;
-	cbvTable.Init (
-		D3D12_DESCRIPTOR_RANGE_TYPE_CBV,		// Type
-		1,										// 表中的描述符數量
-		0										// 將這段描述符區域綁定至此基準著色器寄存器
+	cbvTable.Init(
+		D3D12_DESCRIPTOR_RANGE_TYPE_CBV,
+		1,
+		0
 	);
 
-	slotRootParameter[0].InitAsDescriptorTable (
-		1,				// 描述符區域的數量
-		&cbvTable		// 指向描述符區域數組的指針			
+	slotRootParameter[0].InitAsDescriptorTable(
+		1,
+		&cbvTable
 	);
 
 	// 根簽名由一組根參數構成
-	CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc (1, slotRootParameter, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+	CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(1, slotRootParameter, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
 	// 創建僅含一個槽位(該槽位指向一個僅由單個常量緩沖區組成的描述符區域的根簽名
 	ComPtr<ID3DBlob> serializedRootSig = nullptr;
 	ComPtr<ID3DBlob> errorBlob = nullptr;
-	auto hr = D3D12SerializeRootSignature (
+	auto hr = D3D12SerializeRootSignature(
 		&rootSigDesc,
-		D3D_ROOT_SIGNATURE_VERSION_1,	
-		serializedRootSig.GetAddressOf (),
-		errorBlob.GetAddressOf ()
+		D3D_ROOT_SIGNATURE_VERSION_1,
+		serializedRootSig.GetAddressOf(),
+		errorBlob.GetAddressOf()
 	);
 
 	if (errorBlob != nullptr) {
-		OutputDebugStringA ((char*)errorBlob->GetBufferPointer ());
+		OutputDebugStringA((char*)errorBlob->GetBufferPointer());
 	}
-	ThrowIfFailed (hr);
+	ThrowIfFailed(hr);
 
-	ThrowIfFailed (m_Device->CreateRootSignature (
+	ThrowIfFailed(_device->CreateRootSignature(
 		0,
-		serializedRootSig->GetBufferPointer (),
-		serializedRootSig->GetBufferSize (),
-		IID_PPV_ARGS (&m_RootSignature)
+		serializedRootSig->GetBufferPointer(),
+		serializedRootSig->GetBufferSize(),
+		IID_PPV_ARGS(&_rootSignature)
 	));
 }
 
-void BoxApp::BuildShadersAndInputLayout () {
-	m_VSByteCode = D3DUtil::CompileShader (L"Shaders\\Color.hlsl", nullptr, "VS", "vs_5_0");
-	m_PSByteCode = D3DUtil::CompileShader (L"Shaders\\Color.hlsl", nullptr, "PS", "ps_5_0");
+void BoxApp::BuildShadersAndInputLayout() {
+	_vsByteCode = D3DUtil::CompileShader(L"Shaders\\Color.hlsl", nullptr, "VS", "vs_5_0");
+	_psByteCode = D3DUtil::CompileShader(L"Shaders\\Color.hlsl", nullptr, "PS", "ps_5_0");
 
-	m_InputLayout = {
-		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
-		{"TANGENT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
-		// 練習 1
-/*		{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
-		{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
-		{"TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
-		{"COLOR", 0, DXGI_FORMAT_R8G8B8A8_UINT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},*/	
+	_inputLayout = {
+		{"TANGENT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+
+#pragma region Exercise 1
+		/*
+			{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+			{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+			{"TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+			{"COLOR", 0, DXGI_FORMAT_R8G8B8A8_UINT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+		*/
+#pragma endregion
 	};
 
-	// 練習 2
-	//m_InputLayout = {
-	//	{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
-	//	{"TANGENT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
-	//};
+#pragma region Exercise 2
+	// _inputLayout = {
+	//    {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+	//    {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+	// };
+#pragma endregion
 
-	// 練習 10
-	//m_InputLayout = {
-	//	{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
-	//	{"COLOR", 0, DXGI_FORMAT_B8G8R8A8_UNORM, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
-	//};
+#pragma region Exercise 10
+   // _inputLayout = {
+   //	{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+   //	{"COLOR", 0, DXGI_FORMAT_B8G8R8A8_UNORM, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+   //};
+#pragma endregion
 }
 
-void BoxApp::BuildBoxGeometry () {
-
+void BoxApp::BuildBoxGeometry() {
 	std::array<Vertex, 8> vertices = {
-		Vertex ({XMFLOAT3 (-1.0f, -1.0f, -1.0f), XMFLOAT4 (Colors::White)}),
-		Vertex ({XMFLOAT3 (-1.0f,  1.0f, -1.0f), XMFLOAT4 (Colors::Black)}),
-		Vertex ({XMFLOAT3 (1.0f,  1.0f, -1.0f), XMFLOAT4 (Colors::Red)}),
-		Vertex ({XMFLOAT3 (1.0f, -1.0f, -1.0f), XMFLOAT4 (Colors::Green)}),
-		Vertex ({XMFLOAT3 (-1.0f, -1.0f,  1.0f), XMFLOAT4 (Colors::Blue)}),
-		Vertex ({XMFLOAT3 (-1.0f,  1.0f,  1.0f), XMFLOAT4 (Colors::Yellow)}),
-		Vertex ({XMFLOAT3 (1.0f,  1.0f,  1.0f), XMFLOAT4 (Colors::Cyan)}),
-		Vertex ({XMFLOAT3 (1.0f, -1.0f,  1.0f), XMFLOAT4 (Colors::Magenta)})
+		Vertex({XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(Colors::White)}),
+		Vertex({XMFLOAT3(-1.0f,  1.0f, -1.0f), XMFLOAT4(Colors::Black)}),
+		Vertex({XMFLOAT3(1.0f,  1.0f, -1.0f), XMFLOAT4(Colors::Red)}),
+		Vertex({XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(Colors::Green)}),
+		Vertex({XMFLOAT3(-1.0f, -1.0f,  1.0f), XMFLOAT4(Colors::Blue)}),
+		Vertex({XMFLOAT3(-1.0f,  1.0f,  1.0f), XMFLOAT4(Colors::Yellow)}),
+		Vertex({XMFLOAT3(1.0f,  1.0f,  1.0f), XMFLOAT4(Colors::Cyan)}),
+		Vertex({XMFLOAT3(1.0f, -1.0f,  1.0f), XMFLOAT4(Colors::Magenta)})
 	};
-
-	// 練習 10
-	//std::array<Vertex2, 8> vertices = {
-	//	Vertex2 ({XMFLOAT3 (-1.0f, -1.0f, -1.0f), XMCOLOR (Colors::White)}),
-	//	Vertex2 ({XMFLOAT3 (-1.0f,  1.0f, -1.0f), XMCOLOR (Colors::Black)}),
-	//	Vertex2 ({XMFLOAT3 (1.0f,  1.0f, -1.0f), XMCOLOR (Colors::Red)}),
-	//	Vertex2 ({XMFLOAT3 (1.0f, -1.0f, -1.0f), XMCOLOR (Colors::Green)}),
-	//	Vertex2 ({XMFLOAT3 (-1.0f, -1.0f,  1.0f), XMCOLOR (Colors::Blue)}),
-	//	Vertex2 ({XMFLOAT3 (-1.0f,  1.0f,  1.0f), XMCOLOR (Colors::Yellow)}),
-	//	Vertex2 ({XMFLOAT3 (1.0f,  1.0f,  1.0f), XMCOLOR (Colors::Cyan)}),
-	//	Vertex2 ({XMFLOAT3 (1.0f, -1.0f,  1.0f), XMCOLOR (Colors::Magenta)})
-	//};
-
-#pragma region 練習2
-
-	std::array<VPosData, 8> verticesPos = {
-		VPosData ({XMFLOAT3 (-1.0f, -1.0f, -1.0f)}),
-		VPosData ({XMFLOAT3 (-1.0f, +1.0f, -1.0f)}),
-		VPosData ({XMFLOAT3 (+1.0f, +1.0f, -1.0f)}),
-		VPosData ({XMFLOAT3 (+1.0f, -1.0f, -1.0f)}),
-		VPosData ({XMFLOAT3 (-1.0f, -1.0f, +1.0f)}),
-		VPosData ({XMFLOAT3 (-1.0f, +1.0f, +1.0f)}),
-		VPosData ({XMFLOAT3 (+1.0f, +1.0f, +1.0f)}),
-		VPosData ({XMFLOAT3 (+1.0f, -1.0f, +1.0f)})
-	};
-
-	std::array<VColorData, 8> verticesColor = {
-		VColorData ({XMFLOAT4 (Colors::White)}),
-		VColorData ({XMFLOAT4 (Colors::Black)}),
-		VColorData ({XMFLOAT4 (Colors::Red)}),
-		VColorData ({XMFLOAT4 (Colors::Green)}),
-		VColorData ({XMFLOAT4 (Colors::Blue)}),
-		VColorData ({XMFLOAT4 (Colors::Yellow)}),
-		VColorData ({XMFLOAT4 (Colors::Cyan)}),
-		VColorData ({XMFLOAT4 (Colors::Magenta)})
-	};
-
-#pragma endregion
 
 	std::array<std::uint16_t, 36> indices = {
 		// front face
@@ -350,72 +323,107 @@ void BoxApp::BuildBoxGeometry () {
 		4, 3, 7
 	};
 
+#pragma region Exercise 10
+	//std::array<Vertex2, 8> vertices = {
+	//	Vertex2 ({XMFLOAT3 (-1.0f, -1.0f, -1.0f), XMCOLOR (Colors::White)}),
+	//	Vertex2 ({XMFLOAT3 (-1.0f,  1.0f, -1.0f), XMCOLOR (Colors::Black)}),
+	//	Vertex2 ({XMFLOAT3 (1.0f,  1.0f, -1.0f), XMCOLOR (Colors::Red)}),
+	//	Vertex2 ({XMFLOAT3 (1.0f, -1.0f, -1.0f), XMCOLOR (Colors::Green)}),
+	//	Vertex2 ({XMFLOAT3 (-1.0f, -1.0f,  1.0f), XMCOLOR (Colors::Blue)}),
+	//	Vertex2 ({XMFLOAT3 (-1.0f,  1.0f,  1.0f), XMCOLOR (Colors::Yellow)}),
+	//	Vertex2 ({XMFLOAT3 (1.0f,  1.0f,  1.0f), XMCOLOR (Colors::Cyan)}),
+	//	Vertex2 ({XMFLOAT3 (1.0f, -1.0f,  1.0f), XMCOLOR (Colors::Magenta)})
+	//};
 
-	// 練習 2
-	const UINT vpbByteSize = (UINT)verticesPos.size () * sizeof (VPosData);
-	const UINT vcbByteSize = (UINT)verticesColor.size () * sizeof (VColorData);
-
-	// 練習 10
 	//const UINT vbByteSize = vertices.size () * sizeof (Vertex2);
-	const UINT vbByteSize = vertices.size () * sizeof (Vertex);
-	const UINT ibByteSize = indices.size () * sizeof (std::uint16_t);
+#pragma endregion
+	const size_t vbByteSize = vertices.size() * sizeof(Vertex);
+	const size_t ibByteSize = indices.size() * sizeof(std::uint16_t);
 
-	m_BoxGeo = std::make_unique<MeshGeometry> ();
-	m_BoxGeo->Name = "Box";
-	
-	// 練習 2
-	ThrowIfFailed (D3DCreateBlob (vpbByteSize, &m_BoxGeo->VertexPosBufferCPU));
-	CopyMemory (m_BoxGeo->VertexPosBufferCPU->GetBufferPointer (), verticesPos.data (), vpbByteSize);
-	ThrowIfFailed (D3DCreateBlob (vcbByteSize, &m_BoxGeo->VertexColorBufferCPU));
-	CopyMemory (m_BoxGeo->VertexColorBufferCPU->GetBufferPointer (), verticesColor.data(), vcbByteSize);
+	_boxGeo = std::make_unique<MeshGeometry>();
+	_boxGeo->Name = "Box";
 
-	ThrowIfFailed (D3DCreateBlob (vbByteSize, &m_BoxGeo->VertexBufferCPU));
-	CopyMemory (m_BoxGeo->VertexBufferCPU->GetBufferPointer (), vertices.data (), vbByteSize);
-	ThrowIfFailed (D3DCreateBlob (ibByteSize, &m_BoxGeo->IndexBufferCPU));
-	CopyMemory (m_BoxGeo->IndexBufferCPU->GetBufferPointer (), indices.data (), ibByteSize);
+#pragma region Exercise 2
 
-	// 練習 2
-	m_BoxGeo->VertexPosBufferGPU = D3DUtil::CreateDefaultBuffer (m_Device.Get (),
-																 m_CmdList.Get (), verticesPos.data (), vpbByteSize, m_BoxGeo->VertexPosBufferUploader);
-	m_BoxGeo->VertexColorBufferGPU = D3DUtil::CreateDefaultBuffer (m_Device.Get (),
-																   m_CmdList.Get (), verticesColor.data (), vcbByteSize, m_BoxGeo->VertexColorBufferUploader);
+	std::array<VPosData, 8> verticesPos = {
+	VPosData({XMFLOAT3(-1.0f, -1.0f, -1.0f)}),
+	VPosData({XMFLOAT3(-1.0f, +1.0f, -1.0f)}),
+	VPosData({XMFLOAT3(+1.0f, +1.0f, -1.0f)}),
+	VPosData({XMFLOAT3(+1.0f, -1.0f, -1.0f)}),
+	VPosData({XMFLOAT3(-1.0f, -1.0f, +1.0f)}),
+	VPosData({XMFLOAT3(-1.0f, +1.0f, +1.0f)}),
+	VPosData({XMFLOAT3(+1.0f, +1.0f, +1.0f)}),
+	VPosData({XMFLOAT3(+1.0f, -1.0f, +1.0f)})
+	};
 
-	m_BoxGeo->VertexBufferGPU = D3DUtil::CreateDefaultBuffer (m_Device.Get (),
-															  m_CmdList.Get (), vertices.data (), vbByteSize, m_BoxGeo->VertexBufferUploader);
-	m_BoxGeo->IndexBufferGPU = D3DUtil::CreateDefaultBuffer (m_Device.Get (),
-															  m_CmdList.Get (), indices.data (), ibByteSize, m_BoxGeo->IndexBufferUploader);
+	std::array<VColorData, 8> verticesColor = {
+		VColorData({XMFLOAT4(Colors::White)}),
+		VColorData({XMFLOAT4(Colors::Black)}),
+		VColorData({XMFLOAT4(Colors::Red)}),
+		VColorData({XMFLOAT4(Colors::Green)}),
+		VColorData({XMFLOAT4(Colors::Blue)}),
+		VColorData({XMFLOAT4(Colors::Yellow)}),
+		VColorData({XMFLOAT4(Colors::Cyan)}),
+		VColorData({XMFLOAT4(Colors::Magenta)}) // 
+	};
 
-	// 練習 10
-	//m_BoxGeo->VertexByteStride = sizeof (Vertex2);
-	m_BoxGeo->VertexByteStride = sizeof (Vertex);
-	m_BoxGeo->VertexBufferByteSize = vbByteSize;
+	const size_t vpbByteSize = verticesPos.size() * sizeof(VPosData);
+	const size_t vcbByteSize = verticesColor.size() * sizeof(VColorData);
 
-	// 練習 2
-	m_BoxGeo->VertexPosByteStride = sizeof (VPosData);
-	m_BoxGeo->VertexPosBufferByteSize = vpbByteSize;
-	m_BoxGeo->VertexColorByteStride = sizeof (VColorData);
-	m_BoxGeo->VertexColorBufferByteSize = vcbByteSize;
+	ThrowIfFailed(D3DCreateBlob(vpbByteSize, &_boxGeo->VertexPosBufferCPU));
+	CopyMemory(_boxGeo->VertexPosBufferCPU->GetBufferPointer(), verticesPos.data(), vpbByteSize);
+	ThrowIfFailed(D3DCreateBlob(vcbByteSize, &_boxGeo->VertexColorBufferCPU));
+	CopyMemory(_boxGeo->VertexColorBufferCPU->GetBufferPointer(), verticesColor.data(), vcbByteSize);
 
-	m_BoxGeo->IndexFormat = DXGI_FORMAT_R16_UINT;
-	m_BoxGeo->IndexBufferByteSize = ibByteSize;
+	_boxGeo->VertexPosBufferGPU = D3DUtil::CreateDefaultBuffer(_device.Get(),
+															   _cmdList.Get(), verticesPos.data(), vpbByteSize, _boxGeo->VertexPosBufferUploader);
+	_boxGeo->VertexColorBufferGPU = D3DUtil::CreateDefaultBuffer(_device.Get(),
+																 _cmdList.Get(), verticesColor.data(), vcbByteSize, _boxGeo->VertexColorBufferUploader);
+
+	_boxGeo->VertexPosByteStride = sizeof(VPosData);
+	_boxGeo->VertexPosBufferByteSize = vpbByteSize;
+	_boxGeo->VertexColorByteStride = sizeof(VColorData);
+	_boxGeo->VertexColorBufferByteSize = vcbByteSize;
+
+#pragma endregion
+
+	ThrowIfFailed(D3DCreateBlob(vbByteSize, &_boxGeo->VertexBufferCPU));
+	CopyMemory(_boxGeo->VertexBufferCPU->GetBufferPointer(), vertices.data(), vbByteSize);
+	ThrowIfFailed(D3DCreateBlob(ibByteSize, &_boxGeo->IndexBufferCPU));
+	CopyMemory(_boxGeo->IndexBufferCPU->GetBufferPointer(), indices.data(), ibByteSize);
+
+
+	_boxGeo->VertexBufferGPU = D3DUtil::CreateDefaultBuffer(_device.Get(),
+															  _cmdList.Get(), vertices.data(), vbByteSize, _boxGeo->VertexBufferUploader);
+	_boxGeo->IndexBufferGPU = D3DUtil::CreateDefaultBuffer(_device.Get(),
+															  _cmdList.Get(), indices.data(), ibByteSize, _boxGeo->IndexBufferUploader);
+
+#pragma region Exercise 10
+	//_boxGeo->VertexByteStride = sizeof (Vertex2);
+	_boxGeo->VertexByteStride = sizeof(Vertex);
+	_boxGeo->VertexBufferByteSize = vbByteSize;
+#pragma endregion
+
+	_boxGeo->IndexFormat = DXGI_FORMAT_R16_UINT;
+	_boxGeo->IndexBufferByteSize = ibByteSize;
 
 	SubMeshGeometry submesh;
-	submesh.IndexCount = (UINT)indices.size ();
+	submesh.IndexCount = (UINT)indices.size();
 	submesh.StartIndexLocation = 0;
 	submesh.BaseVertexLocation = 0;
 
-	m_BoxGeo->DrawArgs["Box"] = submesh;
+	_boxGeo->DrawArgs["Box"] = submesh;
 }
 
-#pragma region 練習 4
+#pragma region Exercise 4
 
-void BoxApp::BuildPyramidGeometry () {
+void BoxApp::BuildPyramidGeometry() {
 	std::array<Vertex, 5> vertices {
-		Vertex ({XMFLOAT3 ( 0.0f,  2.0f, -1.0f), XMFLOAT4 (Colors::Blue)}),
-		Vertex ({XMFLOAT3 ( 1.0f,  0.0f, -2.0f), XMFLOAT4 (Colors::Green)}),
-		Vertex ({XMFLOAT3 ( 1.0f,  0.0f,  0.0f), XMFLOAT4 (Colors::Red)}),
-		Vertex ({XMFLOAT3 (-1.0f,  0.0f,  0.0f), XMFLOAT4 (Colors::Cyan)}),
-		Vertex ({XMFLOAT3 (-1.0f,  0.0f, -2.0f), XMFLOAT4 (Colors::Black)}),
+		Vertex({XMFLOAT3(0.0f,  5.0f,  0.0f), XMFLOAT4(Colors::Red)}),
+		Vertex({XMFLOAT3(2.0f,  0.0f,  2.0f), XMFLOAT4(Colors::Green)}),
+		Vertex({XMFLOAT3(2.0f,  0.0f, -2.0f), XMFLOAT4(Colors::Green)}),
+		Vertex({XMFLOAT3(-2.0f,  0.0f, -2.0f), XMFLOAT4(Colors::Green)}),
+		Vertex({XMFLOAT3(-2.0f,  0.0f,  2.0f), XMFLOAT4(Colors::Green)}),
 	};
 
 	std::array<std::uint16_t, 18> indices {
@@ -432,57 +440,57 @@ void BoxApp::BuildPyramidGeometry () {
 		4, 1, 2
 	};
 
-	const UINT vbByteSize = vertices.size () * sizeof (Vertex);
-	const UINT ibByteSize = indices.size () * sizeof (std::uint16_t);
+	const size_t vbByteSize = vertices.size() * sizeof(Vertex);
+	const size_t ibByteSize = indices.size() * sizeof(std::uint16_t);
 
-	m_PyramidGeo = std::make_unique<MeshGeometry> ();
-	m_PyramidGeo->Name = "Pyramid";
+	_pyramidGeo = std::make_unique<MeshGeometry>();
+	_pyramidGeo->Name = "Pyramid";
 
-	ThrowIfFailed (D3DCreateBlob (vbByteSize, &m_PyramidGeo->VertexBufferCPU));
-	CopyMemory (m_PyramidGeo->VertexBufferCPU->GetBufferPointer (), vertices.data (), vbByteSize);
-	ThrowIfFailed (D3DCreateBlob (ibByteSize, &m_PyramidGeo->IndexBufferCPU));
-	CopyMemory (m_PyramidGeo->IndexBufferCPU->GetBufferPointer (), indices.data (), ibByteSize);
+	ThrowIfFailed(D3DCreateBlob(vbByteSize, &_pyramidGeo->VertexBufferCPU));
+	CopyMemory(_pyramidGeo->VertexBufferCPU->GetBufferPointer(), vertices.data(), vbByteSize);
+	ThrowIfFailed(D3DCreateBlob(ibByteSize, &_pyramidGeo->IndexBufferCPU));
+	CopyMemory(_pyramidGeo->IndexBufferCPU->GetBufferPointer(), indices.data(), ibByteSize);
 
-	m_PyramidGeo->VertexBufferGPU = D3DUtil::CreateDefaultBuffer (m_Device.Get (),
-																  m_CmdList.Get (), vertices.data (), vbByteSize, m_PyramidGeo->VertexBufferUploader);
-	m_PyramidGeo->IndexBufferGPU = D3DUtil::CreateDefaultBuffer (m_Device.Get (),
-																 m_CmdList.Get (), indices.data (), ibByteSize, m_PyramidGeo->IndexBufferUploader);
+	_pyramidGeo->VertexBufferGPU = D3DUtil::CreateDefaultBuffer(_device.Get(),
+																  _cmdList.Get(), vertices.data(), vbByteSize, _pyramidGeo->VertexBufferUploader);
+	_pyramidGeo->IndexBufferGPU = D3DUtil::CreateDefaultBuffer(_device.Get(),
+																 _cmdList.Get(), indices.data(), ibByteSize, _pyramidGeo->IndexBufferUploader);
 
-	m_PyramidGeo->VertexByteStride = sizeof (Vertex);
-	m_PyramidGeo->VertexBufferByteSize = vbByteSize;
+	_pyramidGeo->VertexByteStride = sizeof(Vertex);
+	_pyramidGeo->VertexBufferByteSize = vbByteSize;
 
-	m_PyramidGeo->IndexFormat = DXGI_FORMAT_R16_UINT;
-	m_PyramidGeo->IndexBufferByteSize = ibByteSize;
+	_pyramidGeo->IndexFormat = DXGI_FORMAT_R16_UINT;
+	_pyramidGeo->IndexBufferByteSize = ibByteSize;
 
 	SubMeshGeometry submesh;
-	submesh.IndexCount = (UINT)indices.size ();
+	submesh.IndexCount = (UINT)indices.size();
 	submesh.StartIndexLocation = 0;
 	submesh.BaseVertexLocation = 0;
 
-	m_PyramidGeo->DrawArgs["Pyramid"] = submesh;
+	_pyramidGeo->DrawArgs["Pyramid"] = submesh;
 }
 
 #pragma endregion
 
-#pragma region 練習 7
+#pragma region Exercise 7
 
-void BoxApp::BuildBoxAndPyramidGeometry () {
-	std::array<Vertex, 13> vertices {	
+void BoxApp::BuildBoxAndPyramidGeometry() {
+	std::array<Vertex, 13> vertices {
 		// Box
-		Vertex ({XMFLOAT3 (-1.0f, -1.0f, -1.0f), XMFLOAT4 (Colors::White)}),
-		Vertex ({XMFLOAT3 (-1.0f,  1.0f, -1.0f), XMFLOAT4 (Colors::Black)}),
-		Vertex ({XMFLOAT3 (1.0f,  1.0f, -1.0f), XMFLOAT4 (Colors::Red)}),
-		Vertex ({XMFLOAT3 (1.0f, -1.0f, -1.0f), XMFLOAT4 (Colors::Green)}),
-		Vertex ({XMFLOAT3 (-1.0f, -1.0f,  1.0f), XMFLOAT4 (Colors::Blue)}),
-		Vertex ({XMFLOAT3 (-1.0f,  1.0f,  1.0f), XMFLOAT4 (Colors::Yellow)}),
-		Vertex ({XMFLOAT3 (1.0f,  1.0f,  1.0f), XMFLOAT4 (Colors::Cyan)}),
-		Vertex ({XMFLOAT3 (1.0f, -1.0f,  1.0f), XMFLOAT4 (Colors::Magenta)}),
+		Vertex({XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(Colors::White)}),
+		Vertex({XMFLOAT3(-1.0f,  1.0f, -1.0f), XMFLOAT4(Colors::Black)}),
+		Vertex({XMFLOAT3(1.0f,  1.0f, -1.0f), XMFLOAT4(Colors::Red)}),
+		Vertex({XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(Colors::Green)}),
+		Vertex({XMFLOAT3(-1.0f, -1.0f,  1.0f), XMFLOAT4(Colors::Blue)}),
+		Vertex({XMFLOAT3(-1.0f,  1.0f,  1.0f), XMFLOAT4(Colors::Yellow)}),
+		Vertex({XMFLOAT3(1.0f,  1.0f,  1.0f), XMFLOAT4(Colors::Cyan)}),
+		Vertex({XMFLOAT3(1.0f, -1.0f,  1.0f), XMFLOAT4(Colors::Magenta)}),
 		// Pyramid
-		Vertex ({XMFLOAT3 (0.0f,  2.0f, -1.0f), XMFLOAT4 (Colors::Blue)}),
-		Vertex ({XMFLOAT3 (1.0f,  0.0f, -2.0f), XMFLOAT4 (Colors::Green)}),
-		Vertex ({XMFLOAT3 (1.0f,  0.0f,  0.0f), XMFLOAT4 (Colors::Red)}),
-		Vertex ({XMFLOAT3 (-1.0f,  0.0f,  0.0f), XMFLOAT4 (Colors::Cyan)}),
-		Vertex ({XMFLOAT3 (-1.0f,  0.0f, -2.0f), XMFLOAT4 (Colors::Black)}),
+		Vertex({XMFLOAT3(0.0f,  2.0f, -1.0f), XMFLOAT4(Colors::Blue)}),
+		Vertex({XMFLOAT3(1.0f,  0.0f, -2.0f), XMFLOAT4(Colors::Green)}),
+		Vertex({XMFLOAT3(1.0f,  0.0f,  0.0f), XMFLOAT4(Colors::Red)}),
+		Vertex({XMFLOAT3(-1.0f,  0.0f,  0.0f), XMFLOAT4(Colors::Cyan)}),
+		Vertex({XMFLOAT3(-1.0f,  0.0f, -2.0f), XMFLOAT4(Colors::Black)}),
 	};
 
 	std::array<std::uint16_t, 54> indices {
@@ -520,27 +528,27 @@ void BoxApp::BuildBoxAndPyramidGeometry () {
 		4, 1, 2
 	};
 
-	const UINT vbByteSize = vertices.size () * sizeof (Vertex);
-	const UINT ibByteSize = indices.size () * sizeof (std::uint16_t);
+	const size_t vbByteSize = vertices.size() * sizeof(Vertex);
+	const size_t ibByteSize = indices.size() * sizeof(std::uint16_t);
 
-	m_MultipleGeo = std::make_unique<MeshGeometry> ();
-	m_MultipleGeo->Name = "Geometry";
+	_multipleGeo = std::make_unique<MeshGeometry>();
+	_multipleGeo->Name = "Geometry";
 
-	ThrowIfFailed (D3DCreateBlob (vbByteSize, &m_MultipleGeo->VertexBufferCPU));
-	CopyMemory (m_MultipleGeo->VertexBufferCPU->GetBufferPointer (), vertices.data (), vbByteSize);
-	ThrowIfFailed (D3DCreateBlob (ibByteSize, &m_MultipleGeo->IndexBufferCPU));
-	CopyMemory (m_MultipleGeo->IndexBufferCPU->GetBufferPointer (), indices.data (), ibByteSize);
+	ThrowIfFailed(D3DCreateBlob(vbByteSize, &_multipleGeo->VertexBufferCPU));
+	CopyMemory(_multipleGeo->VertexBufferCPU->GetBufferPointer(), vertices.data(), vbByteSize);
+	ThrowIfFailed(D3DCreateBlob(ibByteSize, &_multipleGeo->IndexBufferCPU));
+	CopyMemory(_multipleGeo->IndexBufferCPU->GetBufferPointer(), indices.data(), ibByteSize);
 
-	m_MultipleGeo->VertexBufferGPU = D3DUtil::CreateDefaultBuffer (m_Device.Get (),
-																   m_CmdList.Get (), vertices.data (), vbByteSize, m_MultipleGeo->VertexBufferUploader);
-	m_MultipleGeo->IndexBufferGPU = D3DUtil::CreateDefaultBuffer (m_Device.Get (),
-																  m_CmdList.Get (), indices.data (), ibByteSize, m_MultipleGeo->IndexBufferUploader);
+	_multipleGeo->VertexBufferGPU = D3DUtil::CreateDefaultBuffer(_device.Get(),
+																   _cmdList.Get(), vertices.data(), vbByteSize, _multipleGeo->VertexBufferUploader);
+	_multipleGeo->IndexBufferGPU = D3DUtil::CreateDefaultBuffer(_device.Get(),
+																  _cmdList.Get(), indices.data(), ibByteSize, _multipleGeo->IndexBufferUploader);
 
-	m_MultipleGeo->VertexByteStride = sizeof (Vertex);
-	m_MultipleGeo->VertexBufferByteSize = vbByteSize;
+	_multipleGeo->VertexByteStride = sizeof(Vertex);
+	_multipleGeo->VertexBufferByteSize = vbByteSize;
 
-	m_MultipleGeo->IndexFormat = DXGI_FORMAT_R16_UINT;
-	m_MultipleGeo->IndexBufferByteSize = ibByteSize;
+	_multipleGeo->IndexFormat = DXGI_FORMAT_R16_UINT;
+	_multipleGeo->IndexBufferByteSize = ibByteSize;
 
 	SubMeshGeometry boxSubMesh;
 	boxSubMesh.IndexCount = 36;
@@ -552,204 +560,205 @@ void BoxApp::BuildBoxAndPyramidGeometry () {
 	pyramidSubMesh.StartIndexLocation = 36;
 	pyramidSubMesh.BaseVertexLocation = 8;
 
-	m_MultipleGeo->DrawArgs["Box"] = boxSubMesh;
-	m_MultipleGeo->DrawArgs["Pyramid"] = pyramidSubMesh;
+	_multipleGeo->DrawArgs["Box"] = boxSubMesh;
+	_multipleGeo->DrawArgs["Pyramid"] = pyramidSubMesh;
 }
 
 #pragma endregion
 
-void BoxApp::BuildPSO () {
+void BoxApp::BuildPSO() {
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
-	ZeroMemory (&psoDesc, sizeof (D3D12_GRAPHICS_PIPELINE_STATE_DESC));
-	psoDesc.InputLayout = {m_InputLayout.data (), (UINT)m_InputLayout.size ()};
-	psoDesc.pRootSignature = m_RootSignature.Get ();
+	ZeroMemory(&psoDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
+	psoDesc.InputLayout = {_inputLayout.data(), (UINT)_inputLayout.size()};
+	psoDesc.pRootSignature = _rootSignature.Get();
 	psoDesc.VS = {
-		m_VSByteCode->GetBufferPointer (),
-		m_VSByteCode->GetBufferSize ()
+		_vsByteCode->GetBufferPointer(),
+		_vsByteCode->GetBufferSize()
 	};
 	psoDesc.PS = {
-		m_PSByteCode->GetBufferPointer (),
-		m_PSByteCode->GetBufferSize ()
+		_psByteCode->GetBufferPointer(),
+		_psByteCode->GetBufferSize()
 	};
-	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC (D3D12_DEFAULT);
+	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 
-	// 練習 8 & 9
+#pragma region Exercise 8 & 9
 	// psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
 	// psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
+#pragma endregion
 
-	psoDesc.BlendState = CD3DX12_BLEND_DESC (D3D12_DEFAULT);
-	psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC (D3D12_DEFAULT);
+	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 	psoDesc.SampleMask = UINT_MAX;
-	// 如果為true, 則認為三角形逆時針是正面
-	// 如果為false, 則認為三角形順時針為正面
-	// 默認為false
 	psoDesc.RasterizerState.FrontCounterClockwise = false;
-	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+
+#pragma region Exercise 3
+	// psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
 	// psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;
+	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+#pragma endregion
 	psoDesc.NumRenderTargets = 1;
-	psoDesc.RTVFormats[0] = m_BackBufferFormat;
-	psoDesc.SampleDesc.Count = m_4xMsaaState ? 4 : 1;
-	psoDesc.SampleDesc.Quality = m_4xMsaaState ? (m_4xMsaaQuality - 1) : 0;
-	psoDesc.DSVFormat = m_DepthStencilFormat;
-	ThrowIfFailed (m_Device->CreateGraphicsPipelineState (&psoDesc, IID_PPV_ARGS (&m_PSO)));
+	psoDesc.RTVFormats[0] = _backBufferFormat;
+	psoDesc.SampleDesc.Count = _4xMsaaState ? 4 : 1;
+	psoDesc.SampleDesc.Quality = _4xMsaaState ? (_4xMsaaQuality - 1) : 0;
+	psoDesc.DSVFormat = _depthStencilFormat;
+	ThrowIfFailed(_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&_pso)));
 }
 
-void BoxApp::OnResize () {
-	D3DApp::OnResize ();
+void BoxApp::OnResize() {
+	D3DApp::OnResize();
 
-	// 若用戶調整了窗口尺寸, 則更新緃棋比並重新計算投影矩陣
-	XMMATRIX P = XMMatrixPerspectiveFovLH (0.25f * MathHelper::PI, AspectRatio (), 1.0f, 1000.0f);
-	XMStoreFloat4x4 (&m_Proj, P);
+	XMMATRIX P = XMMatrixPerspectiveFovLH(0.25f * MathHelper::PI, AspectRatio(), 1.0f, 1000.0f);
+	XMStoreFloat4x4(&_proj, P);
 }
 
-void BoxApp::Update (const GameTimer& gt) {
-	// 由球坐標轉換為笛卡兒坐標
-	float x = m_Radius * sinf (m_Phi) * cosf (m_Theta);
-	float z = m_Radius * sinf (m_Phi) * sinf (m_Theta);
-	float y = m_Radius * cosf (m_Phi);
+void BoxApp::Update(const GameTimer& gt) {
+	float x = _radius * sinf(_phi) * cosf(_theta);
+	float z = _radius * sinf(_phi) * sinf(_theta);
+	float y = _radius * cosf(_phi);
 
-	// 構建觀察矩陣
-	XMVECTOR pos = XMVectorSet (x, y, z, 1.0f);
-	XMVECTOR target = XMVectorZero ();
-	XMVECTOR up = XMVectorSet (0.0f, 1.0f, 0.0f, 0.0f);
-	XMMATRIX view = XMMatrixLookAtLH (pos, target, up);
-	XMStoreFloat4x4 (&m_View, view);
+	XMVECTOR pos = XMVectorSet(x, y, z, 1.0f);
+	XMVECTOR target = XMVectorZero();
+	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	XMMATRIX view = XMMatrixLookAtLH(pos, target, up);
+	XMStoreFloat4x4(&_view, view);
 
-	XMStoreFloat4x4(&m_World, XMMatrixTranslation (2.0f, 0.0f, 0.0f));
-	XMMATRIX world = XMLoadFloat4x4 (&m_World);
-	XMMATRIX proj = XMLoadFloat4x4 (&m_Proj);
+	XMStoreFloat4x4(&_world, XMMatrixTranslation(2.0f, 0.0f, 0.0f));
+	XMMATRIX world = XMLoadFloat4x4(&_world);
+	XMMATRIX proj = XMLoadFloat4x4(&_proj);
 	XMMATRIX worldViewProj = world * view * proj;
 
-	// 用最新的worldViewProj矩陣來更新常量緩沖區
 	ObjectConstants objConstants;
-	XMStoreFloat4x4 (&objConstants.WorldViewProj, worldViewProj);
-	objConstants.Time = m_Timer.TotalTime ();
-	objConstants.PulseColor = XMFLOAT4 (Colors::Olive);
-	m_ObjectCB->CopyData (0, objConstants);
+	XMStoreFloat4x4(&objConstants.WorldViewProj, worldViewProj);
+#pragma region Exercise 6
+	objConstants.Time = _timer.TotalTime();
+#pragma endregion
 
-	// 練習 7
-	XMStoreFloat4x4 (&m_World, XMMatrixTranslation (-2.0f, 0.0f, 0.0f));
-	world = XMLoadFloat4x4 (&m_World);
-	worldViewProj = world * view * proj;
-	ObjectConstants objConstants2;
-	XMStoreFloat4x4 (&objConstants2.WorldViewProj, worldViewProj);
-	objConstants2.Time = m_Timer.TotalTime ();
-	objConstants2.PulseColor = XMFLOAT4 (Colors::Olive);
-	m_ObjectCB->CopyData (1, objConstants2);
+#pragma region Exercise 16
+	objConstants.PulseColor = XMFLOAT4(Colors::Olive);
+#pragma endregion
+
+	_objectCB->CopyData(0, objConstants);
+
+#pragma region Exercise 7
+	//XMStoreFloat4x4(&_world, XMMatrixTranslation(0.0f, 0.0f, 3.0f));
+	//world = XMLoadFloat4x4(&_world);
+	//worldViewProj = world * view * proj;
+	//ObjectConstants objConstants2;
+	//XMStoreFloat4x4(&objConstants2.WorldViewProj, worldViewProj);
+	//objConstants2.Time = _timer.TotalTime();
+	//objConstants2.PulseColor = XMFLOAT4(Colors::Olive);
+	//_objectCB->CopyData(1, objConstants2);
+#pragma endregion
 }
 
-void BoxApp::Draw (const GameTimer& gt) {
-	// 复用記錄命令所用的內存
-	// 只有當GPU中的命令列表執行完畢後, 才可以對其進行重置
-	ThrowIfFailed (m_CmdAllocator->Reset ());
+void BoxApp::Draw(const GameTimer& gt) {
+	ThrowIfFailed(_cmdAllocator->Reset());
 
-	// 通過函數ExecuteCommandList將命令列表加入命令隊列後,便可對它進行重置
-	// 复用命令列表即复用其相應的內存
-	ThrowIfFailed (m_CmdList->Reset (m_CmdAllocator.Get (), m_PSO.Get ()));
+	ThrowIfFailed(_cmdList->Reset(_cmdAllocator.Get(), _pso.Get()));
 
-	m_CmdList->RSSetViewports (1, &m_Viewport);
-	m_CmdList->RSSetScissorRects (1, &m_ScissorRect);
+	_cmdList->RSSetViewports(1, &_viewport);
+	_cmdList->RSSetScissorRects(1, &_scissorRect);
 
-	// 按照資源的用途指示其狀態的轉變, 此處將資源從呈現狀態轉換為渲染目標狀態
-	m_CmdList->ResourceBarrier (1, &CD3DX12_RESOURCE_BARRIER::Transition (CurrentBackBuffer (),
-		D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),
+							  D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET
 	));
 
-	// 清除後台緩沖區和深度緩沖區
-	m_CmdList->ClearRenderTargetView (CurrentBackBufferView (), Colors::LightSteelBlue, 0, nullptr);
-	m_CmdList->ClearDepthStencilView (DepthStencilView (), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
+	_cmdList->ClearRenderTargetView(CurrentBackBufferView(), Colors::LightSteelBlue, 0, nullptr);
+	_cmdList->ClearDepthStencilView(DepthStencilView(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 
-	// 指定將要渲染的目標緩沖區
-	m_CmdList->OMSetRenderTargets (1, &CurrentBackBufferView (), true, &DepthStencilView ());
+	_cmdList->OMSetRenderTargets(1, &CurrentBackBufferView(), true, &DepthStencilView());
 
-	ID3D12DescriptorHeap* descriptorHeaps[] = {m_CBVHeap.Get ()};
-	m_CmdList->SetDescriptorHeaps (_countof (descriptorHeaps), descriptorHeaps);
+	_cmdList->IASetVertexBuffers(0, 1, &_boxGeo->VertexBufferView());
+	_cmdList->IASetIndexBuffer(&_boxGeo->IndexBufferView());
 
-	m_CmdList->SetGraphicsRootSignature (m_RootSignature.Get ());
-	
-	// 練習 2
-	//m_CmdList->IASetVertexBuffers (0, 1, &m_BoxGeo->VertexPosBufferView ());
-	//m_CmdList->IASetVertexBuffers (1, 1, &m_BoxGeo->VertexColorBufferView ());
-	m_CmdList->IASetVertexBuffers (0, 1, &m_BoxGeo->VertexBufferView ());
+#pragma region Exercise 2
+	//_cmdList->IASetVertexBuffers(0, 1, &_boxGeo->VertexPosBufferView());
+	//_cmdList->IASetVertexBuffers(1, 1, &_boxGeo->VertexColorBufferView());
+#pragma endregion
 
-	m_CmdList->IASetIndexBuffer (&m_BoxGeo->IndexBufferView ());
+	ID3D12DescriptorHeap* descriptorHeaps[] = {_cbvHeap.Get()};
+	_cmdList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+	_cmdList->SetGraphicsRootSignature(_rootSignature.Get());
+	_cmdList->SetGraphicsRootDescriptorTable(0, _cbvHeap->GetGPUDescriptorHandleForHeapStart());
 
-	 m_CmdList->SetGraphicsRootDescriptorTable (0, m_CBVHeap->GetGPUDescriptorHandleForHeapStart ());
+#pragma region Exercise 3
+	//_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
+	//_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINESTRIP);
+	//_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
+	//_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	//_cmdList->DrawInstanced (8, 1, 0, 0);
+#pragma endregion
 
-	// 練習 3
-	//m_CmdList->IASetPrimitiveTopology (D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
-	//m_CmdList->IASetPrimitiveTopology (D3D_PRIMITIVE_TOPOLOGY_LINESTRIP);
-	//m_CmdList->IASetPrimitiveTopology (D3D_PRIMITIVE_TOPOLOGY_LINELIST);
-	//m_CmdList->IASetPrimitiveTopology (D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-	m_CmdList->IASetPrimitiveTopology (D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	//m_CmdList->DrawInstanced (8, 1, 0, 0);
+	//_cmdList->DrawIndexedInstanced (_boxGeo->DrawArgs["Box"].IndexCount, 1, 0, 0, 0);
 
-	m_CmdList->DrawIndexedInstanced (m_BoxGeo->DrawArgs["Box"].IndexCount, 1, 0, 0, 0);
-	
-	// 練習 7
-	//auto handle = m_CBVHeap->GetGPUDescriptorHandleForHeapStart ();
-	//m_CmdList->SetGraphicsRootDescriptorTable (0, handle);
-	//m_CmdList->DrawIndexedInstanced (m_MultipleGeo->DrawArgs["Box"].IndexCount, 1, 0, 0, 0);
-	//handle.ptr += m_CbvSrvUavDescriptorSize;
-	//m_CmdList->SetGraphicsRootDescriptorTable (0, handle);
-	//m_CmdList->DrawIndexedInstanced (m_MultipleGeo->DrawArgs["Pyramid"].IndexCount, 1, m_MultipleGeo->DrawArgs["Pyramid"].StartIndexLocation, m_MultipleGeo->DrawArgs["Pyramid"].BaseVertexLocation, 0);
+#pragma region Exercise 4
+	//_cmdList->IASetVertexBuffers(0, 1, &_pyramidGeo->VertexBufferView());
+	//_cmdList->IASetIndexBuffer(&_pyramidGeo->IndexBufferView());
+	//_cmdList->DrawIndexedInstanced(_pyramidGeo->DrawArgs["Pyramid"].IndexCount, 1, 0, 0, 0);
+#pragma endregion
 
-	// 按照資源的用途指示其狀態的轉換, 此處將資源從渲染目標狀態轉換為呈現狀態
-	m_CmdList->ResourceBarrier (1, &CD3DX12_RESOURCE_BARRIER::Transition (CurrentBackBuffer (),
-		D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT
+	_cmdList->DrawIndexedInstanced(_boxGeo->DrawArgs["Box"].IndexCount, 1, 0, 0, 0);
+
+#pragma region Exercise 7
+	//_cmdList->IASetVertexBuffers(0, 1, &_multipleGeo->VertexBufferView());
+	//_cmdList->IASetIndexBuffer(&_multipleGeo->IndexBufferView());
+	//auto handle = _cbvHeap->GetGPUDescriptorHandleForHeapStart();
+	//_cmdList->SetGraphicsRootDescriptorTable(0, handle);
+	//_cmdList->DrawIndexedInstanced(_multipleGeo->DrawArgs["Box"].IndexCount, 1, 0, 0, 0);
+	//handle.ptr += _cbvSrvUavDescriptorSize;
+	//_cmdList->SetGraphicsRootDescriptorTable(0, handle);
+	//_cmdList->DrawIndexedInstanced(_multipleGeo->DrawArgs["Pyramid"].IndexCount, 1, _multipleGeo->DrawArgs["Pyramid"].StartIndexLocation, _multipleGeo->DrawArgs["Pyramid"].BaseVertexLocation, 0);
+#pragma endregion
+
+	_cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),
+							  D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT
 	));
 
-	// 完成命令的記錄
-	ThrowIfFailed (m_CmdList->Close ());
-	
-	// 向命令隊列添加欲執行的命令列表
-	ID3D12CommandList* cmdLists[] = {m_CmdList.Get ()};
-	m_CmdQueue->ExecuteCommandLists (_countof (cmdLists), cmdLists);
+	ThrowIfFailed(_cmdList->Close());
 
-	// 交換後台緩沖區與前台緩沖區
-	ThrowIfFailed (m_SwapChain->Present (0, 0));
-	m_CurrentBackBuffer = (m_CurrentBackBuffer + 1) % m_SwapChainBufferCount;
+	ID3D12CommandList* cmdLists[] = {_cmdList.Get()};
+	_cmdQueue->ExecuteCommandLists(_countof(cmdLists), cmdLists);
 
-	// 等待繪制此幀的一系列命令執行完畢。這種等待的方法雖然簡單但也低效
-	FlushCommandQueue ();
+	ThrowIfFailed(_swapChain->Present(0, 0));
+	_currentBackBuffer = (_currentBackBuffer + 1) % _swapChainBufferCount;
+
+	FlushCommandQueue();
 }
 
-void BoxApp::OnMouseDown (WPARAM btnState, int x, int y) {
-	m_LastMousePos.x = x;
-	m_LastMousePos.y = y;
+void BoxApp::OnMouseDown(WPARAM btnState, int x, int y) {
+	_lastMousePos.x = x;
+	_lastMousePos.y = y;
 
-	SetCapture (m_MainWnd);
+	SetCapture(_mainWnd);
 }
 
-void BoxApp::OnMouseUp (WPARAM btnState, int x, int y) {
-	ReleaseCapture ();
+void BoxApp::OnMouseUp(WPARAM btnState, int x, int y) {
+	ReleaseCapture();
 }
 
-void BoxApp::OnMouseMove (WPARAM btnState, int x, int y) {
+void BoxApp::OnMouseMove(WPARAM btnState, int x, int y) {
 	if ((btnState & MK_LBUTTON) != 0) {
 		// Make each pixel correspond to a quarter of a degree.
-		float dx = XMConvertToRadians (0.25f * static_cast<float> (x - m_LastMousePos.x));
-		float dy = XMConvertToRadians (0.25f * static_cast<float> (y - m_LastMousePos.y));
+		float dx = XMConvertToRadians(0.25f * static_cast<float> (x - _lastMousePos.x));
+		float dy = XMConvertToRadians(0.25f * static_cast<float> (y - _lastMousePos.y));
 
 		// Update angles based on input to orbit camera around box.
-		m_Theta += dx;
-		m_Phi += dy;
+		_theta += dx;
+		_phi += dy;
 
 		// Restrict the angle m_Phi.
 		// 0 and 180 not included.
-		m_Phi = MathHelper::Clamp (m_Phi, 0.1f, MathHelper::PI - 0.1f);
+		_phi = MathHelper::Clamp(_phi, 0.1f, MathHelper::PI - 0.1f);
 	} else if ((btnState & MK_RBUTTON) != 0) {
-		// 使場景中的每個像素按鼠標移動距離的0.005倍進行縮放
-		float dx = 0.005f * static_cast<float> (x - m_LastMousePos.x);
-		float dy = 0.005f * static_cast<float> (y - m_LastMousePos.y);
+		float dx = 0.005f * static_cast<float> (x - _lastMousePos.x);
+		float dy = 0.005f * static_cast<float> (y - _lastMousePos.y);
 
-		// 根據鼠標的輸入更新攝像機可視範圍半徑
-		m_Radius += dx - dy;
+		_radius += dx - dy;
 
-		// 限制可視半徑的範圍
-		m_Radius = MathHelper::Clamp (m_Radius, 3.0f, 15.0f);
+		_radius = MathHelper::Clamp(_radius, 3.0f, 15.0f);
 	}
 
-	m_LastMousePos.x = x;
-	m_LastMousePos.y = y;
+	_lastMousePos.x = x;
+	_lastMousePos.y = y;
 }
