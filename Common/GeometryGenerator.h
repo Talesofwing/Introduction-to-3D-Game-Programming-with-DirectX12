@@ -28,8 +28,9 @@ public:
 		std::vector<uint16>& GetIndices16() {
 			if (m_Indices16.empty()) {
 				m_Indices16.resize(Indices32.size());
-				for (size_t i = 0; i < Indices32.size(); ++i)
+				for (size_t i = 0; i < Indices32.size(); ++i) {
 					m_Indices16[i] = static_cast<uint16> (Indices32[i]);
+				}
 			}
 			return m_Indices16;
 		}

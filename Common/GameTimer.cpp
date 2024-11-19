@@ -3,73 +3,73 @@
 #include <windows.h>
 
 GameTimer::GameTimer()
-	: m_SecondsPerCount(0.0), m_DeltaTime(-1.0), m_BaseTime(0),
-	m_PausedTime(0), m_StopTime(0), m_PrevTime(0), m_CurrTime(0), m_Stopped(false) {
+	: _secondsPerCount(0.0), _deltaTime(-1.0), _baseTime(0),
+	_pausedTime(0), _stopTime(0), _prevTime(0), _currTime(0), _stopped(false) {
 	int64_t countsPerSec;
 	QueryPerformanceFrequency((LARGE_INTEGER*)&countsPerSec);
-	m_SecondsPerCount = 1.0 / (double)countsPerSec;
+	_secondsPerCount = 1.0 / (double)countsPerSec;
 }
 
 float GameTimer::TotalTime() const {
-	if (m_Stopped) {
-		return (float)(((m_StopTime - m_PausedTime) - m_BaseTime) * m_SecondsPerCount);
+	if (_stopped) {
+		return (float)(((_stopTime - _pausedTime) - _baseTime) * _secondsPerCount);
 	} else {
-		return (float)(((m_CurrTime - m_PausedTime) - m_BaseTime) * m_SecondsPerCount);
+		return (float)(((_currTime - _pausedTime) - _baseTime) * _secondsPerCount);
 	}
 }
 
 float GameTimer::DeltaTime() const {
-	return (float)m_DeltaTime;
+	return (float)_deltaTime;
 }
 
 void GameTimer::Reset() {
 	int64_t currTime;
 	QueryPerformanceCounter((LARGE_INTEGER*)&currTime);
 
-	m_BaseTime = currTime;
-	m_PrevTime = currTime;
-	m_StopTime = 0;
-	m_Stopped = false;
+	_baseTime = currTime;
+	_prevTime = currTime;
+	_stopTime = 0;
+	_stopped = false;
 }
 
 void GameTimer::Start() {
 	int64_t startTime;
 	QueryPerformanceCounter((LARGE_INTEGER*)&startTime);
 
-	if (m_Stopped) {
-		m_PausedTime += (startTime - m_StopTime);
+	if (_stopped) {
+		_pausedTime += (startTime - _stopTime);
 
-		m_PrevTime = startTime;
-		m_StopTime = 0;
-		m_Stopped = false;
+		_prevTime = startTime;
+		_stopTime = 0;
+		_stopped = false;
 	}
 }
 
 void GameTimer::Stop() {
-	if (!m_Stopped) {
+	if (!_stopped) {
 		int64_t currTime;
 		QueryPerformanceCounter((LARGE_INTEGER*)&currTime);
 
-		m_StopTime = currTime;
-		m_Stopped = true;
+		_stopTime = currTime;
+		_stopped = true;
 	}
 }
 
 void GameTimer::Tick() {
-	if (m_Stopped) {
-		m_DeltaTime = 0.0;
+	if (_stopped) {
+		_deltaTime = 0.0;
 		return;
 	}
 
 	int64_t currTime;
 	QueryPerformanceCounter((LARGE_INTEGER*)&currTime);
-	m_CurrTime = currTime;
+	_currTime = currTime;
 
-	m_DeltaTime = (m_CurrTime - m_PrevTime) * m_SecondsPerCount;
+	_deltaTime = (_currTime - _prevTime) * _secondsPerCount;
 
-	m_PrevTime = m_CurrTime;
+	_prevTime = _currTime;
 
-	if (m_DeltaTime < 0.0) {
-		m_DeltaTime = 0.0;
+	if (_deltaTime < 0.0) {
+		_deltaTime = 0.0;
 	}
 }
