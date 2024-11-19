@@ -115,8 +115,9 @@ void ShapesApp::OnResize() {
 }
 
 bool ShapesApp::Initialize() {
-	if (!D3DApp::Initialize())
+	if (!D3DApp::Initialize()) {
 		return false;
+	}
 
 	// Reset the command list to prep for initialization commands
 	ThrowIfFailed(_cmdList->Reset(_cmdAllocator.Get(), nullptr));

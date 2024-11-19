@@ -4,27 +4,27 @@
 
 using namespace DirectX;
 
-Waves::Waves (int m, int n, float dx, float dt, float speed, float damping) {
-	m_NumRows = m;
-	m_NumCols = n;
+Waves::Waves(int m, int n, float dx, float dt, float speed, float damping) {
+	_numRows = m;
+	_numCols = n;
 
-	m_VertexCount = m * n;
-	m_TriangleCount = (m - 1) * (n - 1) * 2;
+	_vertexCount = m * n;
+	_triangleCount = (m - 1) * (n - 1) * 2;
 
-	m_TimeStep = dt;
-	m_SpatialStep = dx;
+	_timeStep = dt;
+	_spatialStep = dx;
 
 	float d = damping * dt + 2.0f;
 	float e = (speed * speed) * (dt * dt) / (dx * dx);
 
-	m_K1 = (damping * dt - 2.0f) / d;
-	m_K2 = (4.0f - 8.0f * e) / d;
-	m_K3 = (2.0f * e) / d;
+	_k1 = (damping * dt - 2.0f) / d;
+	_k2 = (4.0f - 8.0f * e) / d;
+	_k3 = (2.0f * e) / d;
 
-	m_PrevSolution.resize (m * n);
-	m_CurrSolution.resize (m * n);
-	m_Normals.resize (m * n);
-	m_TangentX.resize (m * n);
+	_prevSolution.resize(m * n);
+	_currSolution.resize(m * n);
+	_normals.resize(m * n);
+	_tangentX.resize(m * n);
 
 	// Generate grid vertices in system memory.
 
@@ -36,50 +36,50 @@ Waves::Waves (int m, int n, float dx, float dt, float speed, float damping) {
 			float x = -halfWidth + j * dx;
 
 			int index = i * n + j;
-			m_PrevSolution[index] = XMFLOAT3 (x, 0.0f, z);
-			m_CurrSolution[index] = XMFLOAT3 (x, 0.0f, z);
-			m_Normals[index] = XMFLOAT3 (0.0f, 1.0f, 0.0f);
-			m_TangentX[index] = XMFLOAT3 (1.0f, 0.0f, 0.0f);
+			_prevSolution[index] = XMFLOAT3(x, 0.0f, z);
+			_currSolution[index] = XMFLOAT3(x, 0.0f, z);
+			_normals[index] = XMFLOAT3(0.0f, 1.0f, 0.0f);
+			_tangentX[index] = XMFLOAT3(1.0f, 0.0f, 0.0f);
 		}
 	}
 }
 
-Waves::~Waves () {}
+Waves::~Waves() {}
 
-int Waves::RowCount ()const {
-	return m_NumRows;
+int Waves::RowCount()const {
+	return _numRows;
 }
 
-int Waves::ColumnCount ()const {
-	return m_NumCols;
+int Waves::ColumnCount()const {
+	return _numCols;
 }
 
-int Waves::VertexCount ()const {
-	return m_VertexCount;
+int Waves::VertexCount()const {
+	return _vertexCount;
 }
 
-int Waves::TriangleCount ()const {
-	return m_TriangleCount;
+int Waves::TriangleCount()const {
+	return _triangleCount;
 }
 
-float Waves::Width ()const {
-	return m_NumCols * m_SpatialStep;
+float Waves::Width()const {
+	return _numCols * _spatialStep;
 }
 
-float Waves::Depth ()const {
-	return m_NumRows * m_SpatialStep;
+float Waves::Depth()const {
+	return _numRows * _spatialStep;
 }
 
-void Waves::Update (float dt) {
+void Waves::Update(float dt) {
 	static float t = 0;
 
 	// Accumulate time.
 	t += dt;
 
 	// Only update the simulation at the specified time step.
-	if (t >= m_TimeStep) {
-		concurrency::parallel_for (1, m_NumRows - 1, [this](int i) {
-			for (int j = 1; j < m_NumCols - 1; ++j) {
+	if (t >= _timeStep) {
+		concurrency::parallel_for(1, _numRows - 1, [this](int i) {
+			for (int j = 1; j < _numCols - 1; ++j) {
 				// After this update we will be discrading the old previous
 				// buffer, so overwrite that buffer with the new update.
 				// Note how we can do this inplace (read/write to same element)
@@ -89,58 +89,58 @@ void Waves::Update (float dt) {
 				// Moreover, our +z axis goes "down"; this is just to
 				// keep consistent with our row indices going down.
 
-				m_PrevSolution[i * m_NumCols + j].y =
-					m_K1 * m_PrevSolution[i * m_NumCols + j].y +
-					m_K2 * m_CurrSolution[i * m_NumCols + j].y +
-					m_K3 * (m_CurrSolution[(i + 1) * m_NumCols + j].y +
-						m_CurrSolution[(i - 1) * m_NumCols + j].y +
-						m_CurrSolution[i * m_NumCols + j + 1].y +
-						m_CurrSolution[i * m_NumCols + j - 1].y);
+				_prevSolution[i * _numCols + j].y =
+					_k1 * _prevSolution[i * _numCols + j].y +
+					_k2 * _currSolution[i * _numCols + j].y +
+					_k3 * (_currSolution[(i + 1) * _numCols + j].y +
+						_currSolution[(i - 1) * _numCols + j].y +
+						_currSolution[i * _numCols + j + 1].y +
+						_currSolution[i * _numCols + j - 1].y);
 			}
 		});
 
 		// We just overwrote the previous buffer with the new data, so
 		// this data needs to become the current solution and the old
 		// current solution becomes the new previous solution.
-		std::swap (m_PrevSolution, m_CurrSolution);
+		std::swap(_prevSolution, _currSolution);
 
 		t = 0.0f;	// reset time
 
 		//
 		// Compute normals using finite difference scheme.
 		//
-		concurrency::parallel_for (1, m_NumRows - 1, [this](int i) {
-			for (int j = 1; j < m_NumCols - 1; ++j) {
-				float l = m_CurrSolution[i * m_NumCols + j - 1].y;
-				float r = m_CurrSolution[i * m_NumCols + j + 1].y;
-				float t = m_CurrSolution[(i - 1) * m_NumCols + j].y;
-				float b = m_CurrSolution[(i + 1) * m_NumCols + j].y;
-				m_Normals[i * m_NumCols + j].x = -r + l;
-				m_Normals[i * m_NumCols + j].y = 2.0f * m_SpatialStep;
-				m_Normals[i * m_NumCols + j].z = b - t;
+		concurrency::parallel_for(1, _numRows - 1, [this](int i) {
+			for (int j = 1; j < _numCols - 1; ++j) {
+				float l = _currSolution[i * _numCols + j - 1].y;
+				float r = _currSolution[i * _numCols + j + 1].y;
+				float t = _currSolution[(i - 1) * _numCols + j].y;
+				float b = _currSolution[(i + 1) * _numCols + j].y;
+				_normals[i * _numCols + j].x = -r + l;
+				_normals[i * _numCols + j].y = 2.0f * _spatialStep;
+				_normals[i * _numCols + j].z = b - t;
 
-				XMVECTOR n = XMVector3Normalize (XMLoadFloat3 (&m_Normals[i * m_NumCols + j]));
-				XMStoreFloat3 (&m_Normals[i * m_NumCols + j], n);
+				XMVECTOR n = XMVector3Normalize(XMLoadFloat3(&_normals[i * _numCols + j]));
+				XMStoreFloat3(&_normals[i * _numCols + j], n);
 
-				m_TangentX[i * m_NumCols + j] = XMFLOAT3 (2.0f * m_SpatialStep, r - 1, 0.0f);
-				XMVECTOR T = XMVector3Normalize (XMLoadFloat3 (&m_TangentX[i * m_NumCols + j]));
-				XMStoreFloat3 (&m_TangentX[i * m_NumCols + j], T);
+				_tangentX[i * _numCols + j] = XMFLOAT3(2.0f * _spatialStep, r - 1, 0.0f);
+				XMVECTOR T = XMVector3Normalize(XMLoadFloat3(&_tangentX[i * _numCols + j]));
+				XMStoreFloat3(&_tangentX[i * _numCols + j], T);
 			}
 		});
 	}
 }
 
-void Waves::Disturb (int i, int j, float magnitude) {
+void Waves::Disturb(int i, int j, float magnitude) {
 	// Don't disturb boundaries.
-	assert (i > 1 && i < m_NumRows - 2);
-	assert (j > 1 && j < m_NumCols - 2);
+	assert(i > 1 && i < _numRows - 2);
+	assert(j > 1 && j < _numCols - 2);
 
 	float halfMag = 0.5f * magnitude;
 
 	// Disturb the ijth vertex height and its neighbors.
-	m_CurrSolution[i * m_NumCols + j].y += magnitude;
-	m_CurrSolution[i * m_NumCols + j + 1].y += halfMag;
-	m_CurrSolution[i * m_NumCols + j - 1].y += halfMag;
-	m_CurrSolution[(i + 1) * m_NumCols + j].y += halfMag;
-	m_CurrSolution[(i - 1) * m_NumCols + j].y += halfMag;
+	_currSolution[i * _numCols + j].y += magnitude;
+	_currSolution[i * _numCols + j + 1].y += halfMag;
+	_currSolution[i * _numCols + j - 1].y += halfMag;
+	_currSolution[(i + 1) * _numCols + j].y += halfMag;
+	_currSolution[(i - 1) * _numCols + j].y += halfMag;
 }
